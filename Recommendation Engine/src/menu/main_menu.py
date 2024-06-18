@@ -4,6 +4,8 @@ import datetime
 
 # Ensure the src directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import necessary modules and services
 from src.models.user import User
 from .admin_menu import AdminMenu
 from .chef_menu import ChefMenu
@@ -18,6 +20,9 @@ class MainMenu:
         'EXIT': '4'
     }
 
+    first_day = True
+    current_date = datetime.date.today()
+
     @staticmethod
     def display():
         print("\nMain Menu")
@@ -28,9 +33,6 @@ class MainMenu:
 
     @staticmethod
     def run():
-        global current_date
-        current_date = datetime.date.today()
-
         actions = {
             MainMenu.MENU_CHOICES['LOGIN']: MainMenu.login,
             MainMenu.MENU_CHOICES['REGISTER']: MainMenu.register,
@@ -52,15 +54,19 @@ class MainMenu:
         role = User.authenticate(employee_id, password)
         if role:
             print(f"Authenticated as {role}")
-            if role == 'admin':
-                MainMenu.admin_menu()
-            elif role == 'chef':
-                MainMenu.chef_menu()
-            elif role == 'employee':
-                MainMenu.employee_menu(employee_id)
+            MainMenu.navigate_role_menu(role, employee_id)
         else:
             print("Authentication failed. Please try again.")
         return True
+
+    @staticmethod
+    def navigate_role_menu(role, employee_id):
+        if role == 'admin':
+            MainMenu.admin_menu()
+        elif role == 'chef':
+            MainMenu.chef_menu()
+        elif role == 'employee':
+            MainMenu.employee_menu(employee_id)
 
     @staticmethod
     def register():
@@ -74,11 +80,13 @@ class MainMenu:
 
     @staticmethod
     def next_day():
-        global current_date
-        current_date += datetime.timedelta(days=1)
-        ResetService.reset_daily_data()
-        print(f"Simulated date: {current_date}")
-        print("Chef needs to log in and generate food recommendations for the next day.")
+        MainMenu.current_date += datetime.timedelta(days=1)
+        if ResetService.reset_daily_data():
+            MainMenu.first_day = False
+            print(f"Simulated date: {MainMenu.current_date}")
+            print("Chef needs to log in and generate food recommendations for the next day.")
+        else:
+            print("Chef needs to choose items for the next day before transitioning.")
         return True
 
     @staticmethod
@@ -111,5 +119,5 @@ class MainMenu:
         while True:
             EmployeeMenu.display()
             choice = input("Enter choice: ")
-            if not EmployeeMenu.handle_choice(employee_id, choice):
+            if not EmployeeMenu.handle_choice(employee_id, choice, MainMenu.first_day, MainMenu.current_date):
                 break

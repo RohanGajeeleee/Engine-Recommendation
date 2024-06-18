@@ -5,6 +5,7 @@ from src.models.recommendations import Recommendation
 from src.models.notifications import Notification
 
 class EmployeeService:
+    
     @staticmethod
     def get_choices_for_feedback(employee_id):
         db = get_db_connection()
@@ -41,7 +42,8 @@ class EmployeeService:
     
     @staticmethod
     def fetch_notifications(employee_id):
-        return Notification.fetch_and_clear_notifications(employee_id)
+        notifications = Notification.fetch_and_clear_notifications(employee_id)
+        return notifications
     
     @staticmethod
     def fetch_recommended_items():

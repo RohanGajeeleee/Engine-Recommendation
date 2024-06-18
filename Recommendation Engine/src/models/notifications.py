@@ -1,13 +1,12 @@
 import sys
 import os
-
-# Ensure the src directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
 import socket
 import threading
 import mysql.connector
 from src.Database.db_config import get_db_connection
+
+
 
 class Notification:
     def __init__(self, employee_id=None, message=None):
@@ -15,52 +14,35 @@ class Notification:
         self.message = message
 
     def save(self):
-        """Save a notification to the database."""
         NotificationDatabaseHandler.save_notification(self.employee_id, self.message)
 
     @staticmethod
     def send(employee_id, message):
-        """Send a notification to the specified employee."""
         NotificationSender.send_notification(employee_id, message)
 
     @staticmethod
     def send_to_all_employees(message):
-        """Send a notification to all employees."""
-        db = get_db_connection()
-        cursor = db.cursor()
-        try:
-            query = "SELECT employee_id FROM users WHERE role = 'employee'"
-            cursor.execute(query)
-            employees = cursor.fetchall()
-            for employee in employees:
-                Notification.send(employee[0], message)
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-        finally:
-            cursor.close()
-            db.close()
+        employees = NotificationDatabaseHandler.fetch_all_employees()
+        for employee in employees:
+            Notification.send(employee[0], message)
 
     @staticmethod
     def handle_client(client_socket):
-        """Handle incoming client connections."""
         NotificationReceiver.handle_client_connection(client_socket)
 
     @staticmethod
     def start_server():
-        """Start the notification server."""
         NotificationReceiver.start_server()
 
     @staticmethod
     def fetch_and_clear_notifications(employee_id):
-        """Fetch and clear notifications for a user."""
         notifications = NotificationDatabaseHandler.fetch_notifications(employee_id)
-        NotificationDatabaseHandler.clear_notifications(employee_id)
+        NotificationDatabaseHandler.clear_notifications(employee_id, notifications)
         return notifications
 
 class NotificationDatabaseHandler:
     @staticmethod
     def save_notification(employee_id, message):
-        """Save a notification to the database."""
         db = get_db_connection()
         cursor = db.cursor()
         try:
@@ -75,15 +57,28 @@ class NotificationDatabaseHandler:
             db.close()
 
     @staticmethod
+    def update_notification(employee_id, message):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "UPDATE notifications SET message = %s WHERE employee_id = %s"
+            cursor.execute(query, (message, employee_id))
+            db.commit()
+            print("Notification updated successfully")
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()
+
+    @staticmethod
     def fetch_notifications(employee_id):
-        """Fetch notifications for a user."""
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
-            query = "SELECT message, created_at FROM notifications WHERE employee_id = %s AND is_read = 0"
+            query = "SELECT id, message FROM notifications WHERE employee_id = %s AND is_read = 0"
             cursor.execute(query, (employee_id,))
-            notifications = cursor.fetchall()
-            return notifications
+            return cursor.fetchall()
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return []
@@ -92,16 +87,33 @@ class NotificationDatabaseHandler:
             db.close()
 
     @staticmethod
-    def clear_notifications(employee_id):
-        """Clear notifications for a user."""
+    def clear_notifications(employee_id, notifications):
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "UPDATE notifications SET is_read = 1 WHERE employee_id = %s"
-            cursor.execute(query, (employee_id,))
-            db.commit()
+            notification_ids = [n['id'] for n in notifications]
+            if notification_ids:
+                format_strings = ','.join(['%s'] * len(notification_ids))
+                query = f"UPDATE notifications SET is_read = 1 WHERE employee_id = %s AND id IN ({format_strings})"
+                cursor.execute(query, [employee_id] + notification_ids)
+                db.commit()
         except mysql.connector.Error as err:
             print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()
+
+    @staticmethod
+    def fetch_all_employees():
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT employee_id FROM users WHERE role = 'employee'"
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
         finally:
             cursor.close()
             db.close()
@@ -109,7 +121,6 @@ class NotificationDatabaseHandler:
 class NotificationSender:
     @staticmethod
     def send_notification(employee_id, message):
-        """Send a notification to the specified employee."""
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect(('127.0.0.1', 9999))
         client.send(f"{employee_id}|{message}".encode('utf-8'))
@@ -118,7 +129,6 @@ class NotificationSender:
 class NotificationReceiver:
     @staticmethod
     def handle_client_connection(client_socket):
-        """Handle incoming client connections."""
         try:
             while True:
                 message = client_socket.recv(1024).decode('utf-8')
@@ -132,7 +142,6 @@ class NotificationReceiver:
 
     @staticmethod
     def start_server():
-        """Start the notification server."""
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(('0.0.0.0', 9999))
         server.listen(5)

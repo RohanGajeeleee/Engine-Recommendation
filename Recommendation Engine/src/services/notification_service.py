@@ -7,7 +7,7 @@ class NotificationService:
         if notifications:
             print("Notifications:")
             for notification in notifications:
-                print(f"Message: {notification['message']}, Date: {notification['created_at']}")
+                print(f"Message: {notification['message']}")
         else:
             print("No new notifications.")
         return True

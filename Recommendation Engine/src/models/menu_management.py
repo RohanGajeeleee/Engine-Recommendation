@@ -1,5 +1,3 @@
-# src/menu_management.py
-
 import sys
 import os
 
@@ -20,7 +18,6 @@ class MenuItem:
         query = "INSERT INTO menu (name, price, availability) VALUES (%s, %s, %s)"
         params = (self.name, self.price, self.availability)
         self._execute_query(query, params)
-        print("Menu item added successfully")
 
     def update(self):
         """Update an existing menu item."""
@@ -28,16 +25,27 @@ class MenuItem:
         if updates:
             query = f"UPDATE menu SET {', '.join(updates)} WHERE id = %s"
             self._execute_query(query, tuple(params) + (self.item_id,))
-            print("Menu item updated successfully")
-        else:
-            print("No updates provided.")
 
     def delete(self):
-        """Delete a menu item."""
-        query = "DELETE FROM menu WHERE id = %s"
-        params = (self.item_id,)
-        self._execute_query(query, params)
-        print("Menu item deleted successfully")
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            # First, delete references from current_menu
+            query = "DELETE FROM current_menu WHERE menu_id = %s"
+            cursor.execute(query, (self.item_id,))
+            db.commit()
+
+            # Then, delete the menu item
+            query = "DELETE FROM menu WHERE id = %s"
+            cursor.execute(query, (self.item_id,))
+            db.commit()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            raise
+        finally:
+            cursor.close()
+            db.close()
+
 
     def _prepare_update_params(self):
         """Prepare update parameters."""
@@ -64,6 +72,37 @@ class MenuItem:
             db.commit()
         except mysql.connector.Error as err:
             print(f"Error: {err}")
+            raise
+        finally:
+            cursor.close()
+            db.close()
+
+    @staticmethod
+    def get_all_items():
+        """Retrieve all menu items with average rating and feedback count."""
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT 
+                m.id, m.name, m.price, m.availability, 
+                AVG(f.rating) AS avg_rating, 
+                COUNT(f.id) AS feedback_count 
+            FROM 
+                menu m 
+            LEFT JOIN 
+                feedback f 
+            ON 
+                m.id = f.menu_id 
+            GROUP BY 
+                m.id, m.name, m.price, m.availability
+            """
+            cursor.execute(query)
+            items = cursor.fetchall()
+            return items
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
         finally:
             cursor.close()
             db.close()

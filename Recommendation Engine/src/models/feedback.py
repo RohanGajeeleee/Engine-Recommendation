@@ -13,12 +13,11 @@ class Feedback:
         self.rating = rating
         self.feedback_date = feedback_date
 
-    def add(self):
-        query = "INSERT INTO feedback (employee_id, menu_id, comment, rating, feedback_date) VALUES (%s, %s, %s, %s, CURDATE())"
-        params = (self.employee_id, self.menu_id, self.comment, self.rating)
+    def add(self, current_date):
+        query = "INSERT INTO feedback (employee_id, menu_id, comment, rating, feedback_date) VALUES (%s, %s, %s, %s, %s)"
+        params = (self.employee_id, self.menu_id, self.comment, self.rating, current_date)
         self._execute_query(query, params)
         print("Feedback added successfully")
-
     @staticmethod
     def view():
         query = "SELECT employee_id, menu_id, comment, rating, feedback_date FROM feedback"

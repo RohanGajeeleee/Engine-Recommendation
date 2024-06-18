@@ -3,7 +3,6 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mysql.connector
-import pandas as pd
 from src.Database.db_config import get_db_connection
 
 class Report:
@@ -25,11 +24,10 @@ class Report:
         """
         results = Report._fetch_data(query, (year, month))
 
-        df = pd.DataFrame(results)
-        if Report._is_dataframe_empty(df):
+        if not results:
             print("No feedback found for the specified period.")
         else:
-            Report._generate_and_save_report(df, year, month)
+            Report._generate_and_save_report(results, year, month)
 
     @staticmethod
     def _fetch_data(query, params):
@@ -47,12 +45,18 @@ class Report:
             db.close()
 
     @staticmethod
-    def _is_dataframe_empty(df):
-        return df.empty
-
-    @staticmethod
-    def _generate_and_save_report(df, year, month):
+    def _generate_and_save_report(data, year, month):
+        filename = f'monthly_feedback_report_{year}_{month}.csv'
+        with open(filename, 'w') as file:
+            file.write("Menu ID,Menu Name,Comment,Rating,Feedback Date\n")
+            for row in data:
+                file.write(f"{row['menu_id']},{row['menu_name']},{row['comment']},{row['rating']},{row['feedback_date']}\n")
+        print(f"Report saved to {filename}")
         print("Monthly Feedback Report")
-        print(df)
-        df.to_csv(f'monthly_feedback_report_{year}_{month}.csv', index=False)
-        print(f"Report saved to monthly_feedback_report_{year}_{month}.csv")
+        for row in data:
+            print(f"Menu ID: {row['menu_id']}, Menu Name: {row['menu_name']}, Comment: {row['comment']}, Rating: {row['rating']}, Date: {row['feedback_date']}")
+
+if __name__ == "__main__":
+    year = 2024
+    month = 6
+    Report.generate_monthly_feedback_report(year, month)

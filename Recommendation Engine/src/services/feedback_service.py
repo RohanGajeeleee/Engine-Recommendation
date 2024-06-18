@@ -2,6 +2,7 @@ from src.models.feedback import Feedback
 from src.Database.db_config import get_db_connection
 import mysql.connector
 
+
 class FeedbackService:
     @staticmethod
     def view_feedback():
@@ -9,7 +10,7 @@ class FeedbackService:
         return True
 
     @staticmethod
-    def add_feedback(employee_id):
+    def add_feedback(employee_id, current_date):
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
@@ -42,9 +43,20 @@ class FeedbackService:
                     print("Invalid input. Please enter a valid integer menu ID.")
 
             comment = input("Enter comment: ")
-            rating = int(input("Enter rating (1-5): "))
+
+            while True:
+                rating_str = input("Enter rating (1-5): ")
+                try:
+                    rating = int(rating_str)
+                    if rating < 1 or rating > 5:
+                        print("Invalid rating. Please enter a rating between 1 and 5.")
+                    else:
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a valid integer rating between 1 and 5.")
+
             feedback = Feedback(employee_id, menu_id, comment, rating)
-            feedback.add()
+            feedback.add(current_date)
 
             query = "UPDATE choices SET feedback_given = 1 WHERE employee_id = %s AND menu_id = %s"
             cursor.execute(query, (employee_id, menu_id))
