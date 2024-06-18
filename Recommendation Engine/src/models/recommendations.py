@@ -1,5 +1,3 @@
-# src/models/recommendations.py
-
 import mysql.connector
 from src.Database.db_config import get_db_connection
 from src.models.sentiment_analysis import analyze_sentiment, convert_score_to_sentiment, SentimentAnalyzer
@@ -197,8 +195,8 @@ class Recommendation:
 
     @staticmethod
     def choose_recommended_item(employee_id, menu_id):
-        if Recommendation.has_already_chosen(employee_id):
-            print("You have already chosen a menu item for today.")
+        if Recommendation.has_already_chosen(employee_id, menu_id):
+            print("You have already chosen this menu item for today.")
             return
 
         db = get_db_connection()
@@ -231,12 +229,12 @@ class Recommendation:
             db.close()
 
     @staticmethod
-    def has_already_chosen(employee_id):
+    def has_already_chosen(employee_id, menu_id):
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "SELECT COUNT(*) FROM choices WHERE employee_id = %s AND choice_date = CURDATE()"
-            cursor.execute(query, (employee_id,))
+            query = "SELECT COUNT(*) FROM choices WHERE employee_id = %s AND menu_id = %s AND choice_date = CURDATE()"
+            cursor.execute(query, (employee_id, menu_id))
             result = cursor.fetchone()
             return result[0] > 0
         except mysql.connector.Error as err:

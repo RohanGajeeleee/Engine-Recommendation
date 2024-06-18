@@ -1,7 +1,10 @@
-from src.models.feedback import Feedback
-from src.Database.db_config import get_db_connection
-import mysql.connector
+import sys
+import os
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import mysql.connector
+from src.Database.db_config import get_db_connection
+from src.models.feedback import Feedback
 
 class FeedbackService:
     @staticmethod

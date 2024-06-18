@@ -28,19 +28,20 @@ class RecommendationService:
 
     @staticmethod
     def choose_recommended_item(employee_id):
-        if Recommendation.has_already_chosen(employee_id):
-            print("You have already chosen a menu item for today.")
-            return True
-        
         recommended_items = Recommendation.fetch_recommended_items_from_current_menu()
         if recommended_items:
             print("Recommended Items for Next Day:")
             for item in recommended_items:
                 print(f"ID: {item[0]}, Name: {item[1]}")
-            menu_id = int(input("Enter recommended menu ID to choose: "))
-            if menu_id not in [item[0] for item in recommended_items]:
-                print("Invalid menu ID. Please choose a valid recommended item.")
-                return True
+            while True:
+                try:
+                    menu_id = int(input("Enter recommended menu ID to choose: "))
+                    if menu_id not in [item[0] for item in recommended_items]:
+                        print("Invalid menu ID. Please choose a valid recommended item.")
+                    else:
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a valid integer menu ID.")
             Recommendation.choose_recommended_item(employee_id, menu_id)
         else:
             print("No recommended items available.")
