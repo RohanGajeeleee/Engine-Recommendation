@@ -44,12 +44,31 @@ class ChefMenu:
         return True
 
     @staticmethod
+    @staticmethod
     def generate_report():
-        year = int(input("Enter year: "))
-        month = int(input("Enter month: "))
+        while True:
+            try:
+                year = int(input("Enter year: ").strip())
+                if year < 1900 or year > 2100:
+                    print("Invalid year. Please enter a year between 1900 and 2100.")
+                    continue
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid year.")
+
+        while True:
+            try:
+                month = int(input("Enter month (1-12): ").strip())
+                if month < 1 or month > 12:
+                    print("Invalid month. Please enter a month between 1 and 12.")
+                    continue
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid month.")
+
         Report.generate_monthly_feedback_report(year, month)
         return True
-
+    
     @staticmethod
     def choose_items_for_next_day():
         RecommendationService.choose_items_for_next_day()

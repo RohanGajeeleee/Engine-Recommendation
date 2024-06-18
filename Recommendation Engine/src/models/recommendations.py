@@ -1,6 +1,8 @@
+# src/models/recommendations.py
+
 import mysql.connector
-from src.models.sentiment_analysis import analyze_sentiment
 from src.Database.db_config import get_db_connection
+from src.models.sentiment_analysis import analyze_sentiment, convert_score_to_sentiment, SentimentAnalyzer
 from src.models.notifications import Notification
 
 class Recommendation:
@@ -11,7 +13,35 @@ class Recommendation:
         try:
             query = "SELECT id, name FROM menu WHERE availability = TRUE"
             cursor.execute(query)
-            return cursor.fetchall()
+            items = cursor.fetchall()
+            return items
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()
+
+    @staticmethod
+    def recommend_items_for_next_day(threshold=3.0):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = """
+            SELECT m.id, m.name, AVG(f.rating) AS avg_rating, COUNT(f.id) AS feedback_count
+            FROM menu m
+            LEFT JOIN feedback f ON m.id = f.menu_id
+            GROUP BY m.id, m.name
+            HAVING avg_rating IS NULL OR avg_rating >= %s
+            """
+            cursor.execute(query, (threshold,))
+            results = cursor.fetchall()
+            
+            cursor.execute("TRUNCATE TABLE recommendations")
+            for item in results:
+                cursor.execute("INSERT INTO recommendations (menu_id) VALUES (%s)", (item[0],))
+            db.commit()
+
+            return results
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return []
@@ -20,7 +50,25 @@ class Recommendation:
             db.close()
 
     @staticmethod
-    def display_menu_items(items):
+    def choose_items_for_next_day():
+        items = Recommendation.fetch_available_menu_items()
+        if not items:
+            print("No items available to choose.")
+            return
+
+        print("Choose items for the next day:")
+        Recommendation.display_items(items)
+
+        chosen_items = Recommendation.get_chosen_items(items)
+        if chosen_items:
+            Recommendation.update_next_day_menu(chosen_items)
+            Notification.send_to_all_employees("Menu items have been chosen for the next day.")
+            print("Menu for the next day has been chosen.")
+        else:
+            print("No items were chosen for the next day.")
+
+    @staticmethod
+    def display_items(items):
         for item in items:
             print(f"ID: {item[0]}, Name: {item[1]}")
 
@@ -63,31 +111,14 @@ class Recommendation:
             db.close()
 
     @staticmethod
-    def choose_items_for_next_day():
-        items = Recommendation.fetch_available_menu_items()
-        if not items:
-            print("No items available to choose.")
-            return
-
-        print("Choose items for the next day:")
-        Recommendation.display_menu_items(items)
-
-        chosen_items = Recommendation.get_chosen_items(items)
-        if chosen_items:
-            Recommendation.update_next_day_menu(chosen_items)
-            Recommendation.update_notifications()
-            print("Menu for the next day has been chosen.")
-        else:
-            print("No items were chosen for the next day.")
-
-    @staticmethod
     def fetch_recommended_items_from_current_menu():
         db = get_db_connection()
         cursor = db.cursor()
         try:
             query = "SELECT cm.menu_id, m.name FROM current_menu cm JOIN menu m ON cm.menu_id = m.id"
             cursor.execute(query)
-            return cursor.fetchall()
+            results = cursor.fetchall()
+            return results
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return []
@@ -128,7 +159,8 @@ class Recommendation:
             query = "SELECT menu_id, comment FROM feedback"
             cursor.execute(query)
             results = cursor.fetchall()
-            return [(menu_id, analyze_sentiment(comment)) for menu_id, comment in results]
+            sentiments = [(menu_id, analyze_sentiment(comment)) for menu_id, comment in results]
+            return sentiments
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return []
@@ -138,12 +170,13 @@ class Recommendation:
 
     @staticmethod
     def determine_recommendations(items, sentiments, threshold=3.0):
-        sentiment_dict = {item['id']: "Neutral" for item in items}
+        sentiment_dict = {item['id']: 0 for item in items}
         for sentiment in sentiments:
-            sentiment_dict[sentiment[0]] = sentiment[1]
+            sentiment_dict[sentiment[0]] += sentiment[1]
 
         for item in items:
-            item['sentiment'] = sentiment_dict.get(item['id'], "Neutral")
+            item['sentiment_score'] = sentiment_dict.get(item['id'], 0)
+            item['sentiment'] = convert_score_to_sentiment(item['sentiment_score'])
             if item['feedback_count'] == 0:
                 item['recommended'] = "Yes"
             else:
@@ -158,24 +191,9 @@ class Recommendation:
             return []
 
         sentiments = Recommendation.fetch_sentiments()
-        return Recommendation.determine_recommendations(items, sentiments, threshold)
+        detailed_items = Recommendation.determine_recommendations(items, sentiments, threshold)
 
-    @staticmethod
-    def analyze_feedback_comments():
-        db = get_db_connection()
-        cursor = db.cursor()
-        try:
-            query = "SELECT menu_id, comment FROM feedback"
-            cursor.execute(query)
-            results = cursor.fetchall()
-            sentiments = [(menu_id, comment, analyze_sentiment(comment)) for menu_id, comment in results]
-            return sentiments
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return []
-        finally:
-            cursor.close()
-            db.close()
+        return detailed_items
 
     @staticmethod
     def choose_recommended_item(employee_id, menu_id):
@@ -203,7 +221,8 @@ class Recommendation:
         try:
             query = "SELECT DISTINCT r.menu_id, m.name FROM recommendations r JOIN menu m ON r.menu_id = m.id"
             cursor.execute(query)
-            return cursor.fetchall()
+            results = cursor.fetchall()
+            return results
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return []
@@ -218,13 +237,34 @@ class Recommendation:
         try:
             query = "SELECT COUNT(*) FROM choices WHERE employee_id = %s AND choice_date = CURDATE()"
             cursor.execute(query, (employee_id,))
-            return cursor.fetchone()[0] > 0
+            result = cursor.fetchone()
+            return result[0] > 0
         except mysql.connector.Error as err:
             print(f"Error: {err}")
             return False
         finally:
             cursor.close()
             db.close()
+
+    @staticmethod
+    def get_chosen_items(items):
+        chosen_items = []
+        while True:
+            menu_id = input("Enter menu ID to add to the next day's menu (or 'done' to finish): ")
+            if menu_id.lower() == 'done':
+                if not chosen_items:
+                    print("You must select at least one item.")
+                    continue
+                break
+            try:
+                menu_id = int(menu_id)
+                if menu_id not in [item[0] for item in items]:
+                    print("Invalid menu ID. Please choose a valid menu item.")
+                else:
+                    chosen_items.append(menu_id)
+            except ValueError:
+                print("Invalid input. Please enter a valid integer menu ID.")
+        return chosen_items
 
     @staticmethod
     def clear_choices_table():
@@ -254,25 +294,18 @@ class Recommendation:
             db.close()
 
     @staticmethod
-    def notification_exists(message):
+    def update_notifications():
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "SELECT COUNT(*) FROM notifications WHERE message = %s"
-            cursor.execute(query, (message,))
-            return cursor.fetchone()[0] > 0
+            cursor.execute("UPDATE notifications SET message = 'Menu items have been chosen for the next day.' WHERE message LIKE 'New recommended item%'")
+            db.commit()
+            Notification.send_to_all_employees("Menu items have been updated for the next day.")
         except mysql.connector.Error as err:
             print(f"Error: {err}")
-            return False
         finally:
             cursor.close()
             db.close()
-
-    @staticmethod
-    def update_notifications():
-        message = "Menu items have been chosen for the next day."
-        if not Recommendation.notification_exists(message):
-            Notification.send_to_all_employees(message)
 
     @staticmethod
     def choose_items_again():

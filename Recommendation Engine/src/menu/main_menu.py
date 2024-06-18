@@ -1,16 +1,15 @@
 import sys
 import os
 import datetime
+import mysql.connector
 
-# Ensure the src directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import necessary modules and services
 from src.models.user import User
 from .admin_menu import AdminMenu
 from .chef_menu import ChefMenu
 from .employee_menu import EmployeeMenu
 from src.services.reset_service import ResetService
+from src.models.recommendations import Recommendation
 
 class MainMenu:
     MENU_CHOICES = {
@@ -33,6 +32,9 @@ class MainMenu:
 
     @staticmethod
     def run():
+        global current_date
+        current_date = datetime.date.today()
+
         actions = {
             MainMenu.MENU_CHOICES['LOGIN']: MainMenu.login,
             MainMenu.MENU_CHOICES['REGISTER']: MainMenu.register,
@@ -54,28 +56,40 @@ class MainMenu:
         role = User.authenticate(employee_id, password)
         if role:
             print(f"Authenticated as {role}")
-            MainMenu.navigate_role_menu(role, employee_id)
+            if role == 'admin':
+                MainMenu.admin_menu()
+            elif role == 'chef':
+                MainMenu.chef_menu()
+            elif role == 'employee':
+                MainMenu.employee_menu(employee_id)
         else:
             print("Authentication failed. Please try again.")
         return True
-
-    @staticmethod
-    def navigate_role_menu(role, employee_id):
-        if role == 'admin':
-            MainMenu.admin_menu()
-        elif role == 'chef':
-            MainMenu.chef_menu()
-        elif role == 'employee':
-            MainMenu.employee_menu(employee_id)
 
     @staticmethod
     def register():
         employee_id = input("Enter employee ID: ")
         name = input("Enter name: ")
         password = input("Enter password: ")
-        role = input("Enter role (admin, chef, employee): ")
+        role_input = input("Enter role (1.admin, 2.chef, 3.employee): ")
+        
+        roles = {'1': 'admin', '2': 'chef', '3': 'employee'}
+        role = roles.get(role_input)
+        
+        if not role:
+            print("Invalid role. Please enter 1 for admin, 2 for chef, or 3 for employee.")
+            return True
+
+        if not employee_id or not name or not password:
+            print("Please enter all the information")
+            return True
+
         user = User(employee_id, name, password, role)
-        user.register()
+        try:
+            user.register()
+            print("Registration successful.")
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
         return True
 
     @staticmethod
