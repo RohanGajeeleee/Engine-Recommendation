@@ -30,12 +30,10 @@ class MenuItem:
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            # First, delete references from current_menu
             query = "DELETE FROM current_menu WHERE menu_id = %s"
             cursor.execute(query, (self.item_id,))
             db.commit()
 
-            # Then, delete the menu item
             query = "DELETE FROM menu WHERE id = %s"
             cursor.execute(query, (self.item_id,))
             db.commit()
@@ -79,7 +77,6 @@ class MenuItem:
 
     @staticmethod
     def get_all_items():
-        """Retrieve all menu items with average rating and feedback count."""
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
