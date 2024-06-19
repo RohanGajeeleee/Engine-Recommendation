@@ -18,17 +18,29 @@ class Feedback:
         params = (self.employee_id, self.menu_id, self.comment, self.rating, current_date)
         self._execute_query(query, params)
         print("Feedback added successfully")
+
     @staticmethod
     def view():
         query = """
-        SELECT f.employee_id, u.name AS employee_name, f.menu_id, f.comment, f.rating, f.feedback_date 
-        FROM feedback f
-        JOIN users u ON f.employee_id = u.employee_id
+        SELECT 
+            f.employee_id, 
+            u.name AS employee_name,
+            f.menu_id, 
+            m.name AS menu_name, 
+            f.comment, 
+            f.rating, 
+            f.feedback_date 
+        FROM 
+            feedback f
+        JOIN 
+            menu m ON f.menu_id = m.id
+        JOIN
+            users u ON f.employee_id = u.employee_id
         """
         results = Feedback._execute_query(query)
         if results:
             for row in results:
-                print(f"Employee ID: {row['employee_id']}, Name: {row['employee_name']}, Menu ID: {row['menu_id']}, Comment: {row['comment']}, Rating: {row['rating']}, Date: {row['feedback_date']}")
+                print(f"Employee ID: {row['employee_id']}, Employee Name: {row['employee_name']}, Menu ID: {row['menu_id']}, Menu Name: {row['menu_name']}, Comment: {row['comment']}, Rating: {row['rating']}, Date: {row['feedback_date']}")
         else:
             print("No feedback available")
 
