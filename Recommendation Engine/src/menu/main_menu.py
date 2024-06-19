@@ -89,7 +89,10 @@ class MainMenu:
             user.register()
             print("Registration successful.")
         except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            if err.errno == 1062:  # Duplicate entry error
+                print(f"Error: Duplicate entry for employee ID '{employee_id}'. Please try again with a different ID.")
+            else:
+                print(f"Error: {err}")
         return True
 
     @staticmethod

@@ -18,16 +18,16 @@ class User:
 
     @staticmethod
     def hash_password(password):
-        """Hash a password using SHA-256."""
+        
         return hashlib.sha256(password.encode()).hexdigest()
 
     @staticmethod
     def check_password(hashed_password, password):
-        """Check if the provided password matches the hashed password."""
+       
         return hashed_password == hashlib.sha256(password.encode()).hexdigest()
 
     def register(self):
-        """Register a new user with hashed password."""
+        
         db = get_db_connection()
         cursor = db.cursor()
         hashed_password = self.hash_password(self.password)
@@ -37,14 +37,14 @@ class User:
             db.commit()
             print("User registered successfully")
         except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            db.rollback()
+            raise err
         finally:
             cursor.close()
             db.close()
 
     @staticmethod
     def authenticate(employee_id, password):
-        """Authenticate a user by comparing hashed password."""
         db = get_db_connection()
         cursor = db.cursor()
         try:

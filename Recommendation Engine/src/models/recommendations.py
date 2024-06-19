@@ -113,7 +113,13 @@ class Recommendation:
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "SELECT cm.menu_id, m.name FROM current_menu cm JOIN menu m ON cm.menu_id = m.id"
+            query = """
+            SELECT cm.menu_id, m.name, m.price, AVG(f.rating) AS avg_rating
+            FROM current_menu cm
+            JOIN menu m ON cm.menu_id = m.id
+            LEFT JOIN feedback f ON m.id = f.menu_id
+            GROUP BY cm.menu_id, m.name, m.price
+            """
             cursor.execute(query)
             results = cursor.fetchall()
             return results

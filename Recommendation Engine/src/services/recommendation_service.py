@@ -7,11 +7,11 @@ class RecommendationService:
         if items:
             print("\nComplete Menu:")
             for item in items:
-                avg_rating = item['avg_rating'] if item['avg_rating'] is not None else 0
+                avg_rating = "No Rating" if item['avg_rating'] is None or item['avg_rating'] == 0 else f"{item['avg_rating']:.2f}"
                 feedback_count = item['feedback_count'] if item['feedback_count'] is not None else 0
                 sentiment = item['sentiment']
                 recommended = item['recommended']
-                print(f"ID: {item['id']}, Name: {item['name']}, Price: {item['price']}, Availability: {item['availability']}, Average Rating: {avg_rating:.2f}, Feedback Count: {feedback_count}, Sentiment: {sentiment}, Recommended: {recommended}")
+                print(f"ID: {item['id']}, Name: {item['name']}, Price: {item['price']}, Availability: {item['availability']},  Average Rating: {avg_rating}, Feedback Count: {feedback_count}, Sentiment: {sentiment}, Recommended: {recommended}")
         else:
             print("No menu items available.")
 
@@ -32,7 +32,8 @@ class RecommendationService:
         if recommended_items:
             print("Recommended Items for Next Day:")
             for item in recommended_items:
-                print(f"ID: {item[0]}, Name: {item[1]}")
+                avg_rating = "No Rating yet" if item[3] is None or item[3] == 0 else f"{item[3]:.2f}"
+                print(f"ID: {item[0]}, Name: {item[1]}, Price: {item[2]}, Average Rating: {avg_rating}")
             while True:
                 try:
                     menu_id = int(input("Enter recommended menu ID to choose: "))
@@ -46,6 +47,7 @@ class RecommendationService:
         else:
             print("No recommended items available.")
         return True
+
 
     @staticmethod
     def confirm_menu_for_next_day():
