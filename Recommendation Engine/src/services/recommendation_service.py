@@ -44,9 +44,9 @@ class RecommendationService:
                 except ValueError:
                     print("Invalid input. Please enter a valid integer menu ID.")
 
-            time_of_day = input("Enter time of day (breakfast, lunch, dinner): ").lower()
-            if time_of_day not in ['breakfast', 'lunch', 'dinner']:
-                print("Invalid time of day. Please choose 'breakfast', 'lunch', or 'dinner'.")
+            time_of_day = input("Enter time of day (1.breakfast, 2.lunch, 3.dinner): ").lower()
+            if time_of_day not in ['1', '2', '3']:
+                print("Invalid time of day. Please choose '1 for breakfast', '2 for lunch', or '3 for dinner'.")
             else:
                 Recommendation.choose_recommended_item(employee_id, menu_id, time_of_day)
         else:
