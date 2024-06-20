@@ -13,7 +13,7 @@ class ChefMenu:
         'VIEW_FEEDBACK': '1',
         'GENERATE_REPORT': '2',
         'CHOOSE_ITEMS_FOR_NEXT_DAY': '3',
-        'GENERATE_RECOMMENDATIONS': '4',
+        'GENERATE_CUSTOM_RECOMMENDATIONS': '4',
         'LOGOUT': '5'
     }
 
@@ -23,7 +23,7 @@ class ChefMenu:
         print("1. View Feedback")
         print("2. Generate Monthly Feedback Report")
         print("3. Choose Items for Next Day")
-        print("4. Generate Recommendations")
+        print("4. Generate Custom Recommendations")
         print("5. Logout")
 
     @staticmethod
@@ -32,7 +32,7 @@ class ChefMenu:
             ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: lambda: ChefMenu.view_feedback(employee_id),
             ChefMenu.MENU_CHOICES['GENERATE_REPORT']: lambda: ChefMenu.generate_report(employee_id),
             ChefMenu.MENU_CHOICES['CHOOSE_ITEMS_FOR_NEXT_DAY']: lambda: ChefMenu.choose_items_for_next_day(employee_id),
-            ChefMenu.MENU_CHOICES['GENERATE_RECOMMENDATIONS']: lambda: ChefMenu.generate_recommendations(employee_id),
+            ChefMenu.MENU_CHOICES['GENERATE_CUSTOM_RECOMMENDATIONS']: ChefMenu.generate_custom_recommendations,
             ChefMenu.MENU_CHOICES['LOGOUT']: lambda: ChefMenu.logout(employee_id)
         }
 
@@ -76,11 +76,10 @@ class ChefMenu:
         RecommendationService.choose_items_for_next_day()
         User.log_activity(employee_id, 'choose_items_for_next_day', 'Chose items for the next day')
         return True
-
+    
     @staticmethod
-    def generate_recommendations(employee_id):
-        RecommendationService.list_all_menu_items()
-        User.log_activity(employee_id, 'generate_recommendations', 'Generated recommendations')
+    def generate_custom_recommendations():
+        RecommendationService.generate_custom_recommendations()
         return True
 
     @staticmethod

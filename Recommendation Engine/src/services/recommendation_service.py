@@ -73,3 +73,28 @@ class RecommendationService:
         Recommendation.confirm_menu_for_next_day(chosen_items)
         print("Menu for the next day has been confirmed.")
         return True
+
+    @staticmethod
+    def generate_custom_recommendations():
+        try:
+            num_items = int(input("How many items would you like to display? "))
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+            return
+
+        detailed_items = Recommendation.fetch_all_menu_items_with_details()
+        recommended_items = [item for item in detailed_items if item['recommended'] == "Yes"]
+
+
+        if len(recommended_items) >= num_items:
+            items_to_display = recommended_items[:num_items]
+        else:
+            items_to_display = recommended_items
+            print(f"Only {len(items_to_display)} recommended items available to display.")
+
+           
+        print("Custom Recommendations:")
+        for item in items_to_display:
+            avg_rating = "No Rating" if item['avg_rating'] is None or item['avg_rating'] == 0 else f"{item['avg_rating']:.2f}"
+            print(f"ID: {item['id']}, Name: {item['name']}, Price: {item['price']}, Average Rating: {avg_rating}, Recommended: {item['recommended']}")
+
