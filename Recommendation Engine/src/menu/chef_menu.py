@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from src.models.feedback import Feedback
 from src.models.reporting import Report
 from src.services.recommendation_service import RecommendationService
+from src.models.user import User
 
 class ChefMenu:
     MENU_CHOICES = {
@@ -26,26 +27,26 @@ class ChefMenu:
         print("5. Logout")
 
     @staticmethod
-    def handle_choice(choice):
+    def handle_choice(choice, employee_id):
         actions = {
-            ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: ChefMenu.view_feedback,
-            ChefMenu.MENU_CHOICES['GENERATE_REPORT']: ChefMenu.generate_report,
-            ChefMenu.MENU_CHOICES['CHOOSE_ITEMS_FOR_NEXT_DAY']: ChefMenu.choose_items_for_next_day,
-            ChefMenu.MENU_CHOICES['GENERATE_RECOMMENDATIONS']: ChefMenu.generate_recommendations,
-            ChefMenu.MENU_CHOICES['LOGOUT']: ChefMenu.logout
+            ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: lambda: ChefMenu.view_feedback(employee_id),
+            ChefMenu.MENU_CHOICES['GENERATE_REPORT']: lambda: ChefMenu.generate_report(employee_id),
+            ChefMenu.MENU_CHOICES['CHOOSE_ITEMS_FOR_NEXT_DAY']: lambda: ChefMenu.choose_items_for_next_day(employee_id),
+            ChefMenu.MENU_CHOICES['GENERATE_RECOMMENDATIONS']: lambda: ChefMenu.generate_recommendations(employee_id),
+            ChefMenu.MENU_CHOICES['LOGOUT']: lambda: ChefMenu.logout(employee_id)
         }
 
-        action = actions.get(choice, ChefMenu.invalid_choice)
+        action = actions.get(choice, lambda: ChefMenu.invalid_choice(employee_id))
         return action()
 
     @staticmethod
-    def view_feedback():
+    def view_feedback(employee_id):
         Feedback.view()
+        User.log_activity(employee_id, 'view_feedback', 'Viewed feedback')
         return True
 
     @staticmethod
-    @staticmethod
-    def generate_report():
+    def generate_report(employee_id):
         while True:
             try:
                 year = int(input("Enter year: ").strip())
@@ -67,23 +68,28 @@ class ChefMenu:
                 print("Invalid input. Please enter a valid month.")
 
         Report.generate_monthly_feedback_report(year, month)
+        User.log_activity(employee_id, 'generate_report', 'Generated monthly feedback report')
         return True
     
     @staticmethod
-    def choose_items_for_next_day():
+    def choose_items_for_next_day(employee_id):
         RecommendationService.choose_items_for_next_day()
+        User.log_activity(employee_id, 'choose_items_for_next_day', 'Chose items for the next day')
         return True
 
     @staticmethod
-    def generate_recommendations():
+    def generate_recommendations(employee_id):
         RecommendationService.list_all_menu_items()
+        User.log_activity(employee_id, 'generate_recommendations', 'Generated recommendations')
         return True
 
     @staticmethod
-    def logout():
+    def logout(employee_id):
+        User.log_activity(employee_id, 'logout', 'User logged out')
         return False
 
     @staticmethod
-    def invalid_choice():
+    def invalid_choice(employee_id):
         print("Invalid choice. Please try again.")
+        User.log_activity(employee_id, 'invalid_choice', 'Invalid menu choice')
         return True

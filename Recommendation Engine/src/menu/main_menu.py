@@ -57,9 +57,9 @@ class MainMenu:
         if role:
             print(f"Authenticated as {role}")
             if role == 'admin':
-                MainMenu.admin_menu()
+                MainMenu.admin_menu(employee_id)
             elif role == 'chef':
-                MainMenu.chef_menu()
+                MainMenu.chef_menu(employee_id)
             elif role == 'employee':
                 MainMenu.employee_menu(employee_id)
         else:
@@ -89,7 +89,7 @@ class MainMenu:
             user.register()
             print("Registration successful.")
         except mysql.connector.Error as err:
-            if err.errno == 1062:  # Duplicate entry error
+            if err.errno == 1062:  
                 print(f"Error: Duplicate entry for employee ID '{employee_id}'. Please try again with a different ID.")
             else:
                 print(f"Error: {err}")
@@ -116,19 +116,19 @@ class MainMenu:
         return True
 
     @staticmethod
-    def admin_menu():
+    def admin_menu(employee_id):
         while True:
             AdminMenu.display()
             choice = input("Enter choice: ")
-            if not AdminMenu.handle_choice(choice):
+            if not AdminMenu.handle_choice(choice, employee_id):
                 break
 
     @staticmethod
-    def chef_menu():
+    def chef_menu(employee_id):
         while True:
             ChefMenu.display()
             choice = input("Enter choice: ")
-            if not ChefMenu.handle_choice(choice):
+            if not ChefMenu.handle_choice(choice, employee_id):
                 break
 
     @staticmethod

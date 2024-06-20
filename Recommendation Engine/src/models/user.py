@@ -1,10 +1,5 @@
 import sys
 import os
-
-# Ensure the src directory is in the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# src/user.py
-
 import hashlib
 import mysql.connector
 from src.Database.db_config import get_db_connection
@@ -18,16 +13,13 @@ class User:
 
     @staticmethod
     def hash_password(password):
-        
         return hashlib.sha256(password.encode()).hexdigest()
 
     @staticmethod
     def check_password(hashed_password, password):
-       
         return hashed_password == hashlib.sha256(password.encode()).hexdigest()
 
     def register(self):
-        
         db = get_db_connection()
         cursor = db.cursor()
         hashed_password = self.hash_password(self.password)
@@ -52,10 +44,27 @@ class User:
             cursor.execute(query, (employee_id,))
             result = cursor.fetchone()
             if result and User.check_password(result[0], password):
+                User.log_activity(employee_id, 'login', 'User logged in successfully')
                 return result[1]
+            else:
+                User.log_activity(employee_id, 'login_failed', 'User login failed')
         except mysql.connector.Error as err:
             print(f"Error: {err}")
         finally:
             cursor.close()
             db.close()
         return None
+
+    @staticmethod
+    def log_activity(employee_id, activity_type, description):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "INSERT INTO user_activities (employee_id, activity_type, description) VALUES (%s, %s, %s)"
+            cursor.execute(query, (employee_id, activity_type, description))
+            db.commit()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()

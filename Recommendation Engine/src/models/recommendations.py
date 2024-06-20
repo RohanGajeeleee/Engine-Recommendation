@@ -200,16 +200,16 @@ class Recommendation:
         return detailed_items
 
     @staticmethod
-    def choose_recommended_item(employee_id, menu_id):
-        if Recommendation.has_already_chosen(employee_id, menu_id):
-            print("You have already chosen this menu item for today.")
+    def choose_recommended_item(employee_id, menu_id, time_of_day):
+        if Recommendation.has_already_chosen(employee_id, menu_id, time_of_day):
+            print("You have already chosen this menu item for today at this time.")
             return
 
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "INSERT INTO choices (employee_id, menu_id, choice_date) VALUES (%s, %s, CURDATE())"
-            cursor.execute(query, (employee_id, menu_id))
+            query = "INSERT INTO choices (employee_id, menu_id, choice_date, time_of_day) VALUES (%s, %s, CURDATE(), %s)"
+            cursor.execute(query, (employee_id, menu_id, time_of_day))
             db.commit()
             print("Choice recorded successfully")
         except mysql.connector.Error as err:
@@ -235,12 +235,12 @@ class Recommendation:
             db.close()
 
     @staticmethod
-    def has_already_chosen(employee_id, menu_id):
+    def has_already_chosen(employee_id, menu_id, time_of_day):
         db = get_db_connection()
         cursor = db.cursor()
         try:
-            query = "SELECT COUNT(*) FROM choices WHERE employee_id = %s AND menu_id = %s AND choice_date = CURDATE()"
-            cursor.execute(query, (employee_id, menu_id))
+            query = "SELECT COUNT(*) FROM choices WHERE employee_id = %s AND menu_id = %s AND choice_date = CURDATE() AND time_of_day = %s"
+            cursor.execute(query, (employee_id, menu_id, time_of_day))
             result = cursor.fetchone()
             return result[0] > 0
         except mysql.connector.Error as err:

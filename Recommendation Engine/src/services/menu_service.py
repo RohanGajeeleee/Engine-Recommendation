@@ -1,3 +1,5 @@
+import mysql.connector
+from src.Database.db_config import get_db_connection
 from src.models.menu_management import MenuItem
 
 class MenuService:
