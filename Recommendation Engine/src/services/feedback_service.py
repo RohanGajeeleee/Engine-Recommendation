@@ -15,22 +15,24 @@ class FeedbackService:
 
     @staticmethod
     def add_feedback(employee_id, current_date):
-        choices = FeedbackService.fetch_choices(employee_id)
+        choices = ChoiceFetcher.fetch_choices(employee_id)
         if not choices:
             print("No items available for feedback.")
             return True
 
-        FeedbackService.display_choices(choices)
-        menu_id, time_of_day = FeedbackService.get_menu_id_and_time_of_day(choices)
-        comment = FeedbackService.get_comment()
-        rating = FeedbackService.get_rating()
+        ChoiceDisplayer.display_choices(choices)
+        menu_id, time_of_day = InputHandler.get_menu_id_and_time_of_day(choices)
+        comment = InputHandler.get_comment()
+        rating = InputHandler.get_rating()
 
         feedback = Feedback(employee_id, menu_id, comment, rating)
         feedback.add(current_date)
 
-        FeedbackService.mark_feedback_given(employee_id, menu_id, time_of_day)
+        FeedbackMarker.mark_feedback_given(employee_id, menu_id, time_of_day)
         return True
 
+
+class ChoiceFetcher:
     @staticmethod
     def fetch_choices(employee_id):
         db = get_db_connection()
@@ -52,17 +54,26 @@ class FeedbackService:
             cursor.close()
             db.close()
 
+
+class ChoiceDisplayer:
     @staticmethod
     def display_choices(choices):
         print("Items available for feedback:")
         for choice in choices:
             print(f"ID: {choice['menu_id']}, Name: {choice['name']}, Time of Day: {choice['time_of_day']}")
 
+
+class InputHandler:
     @staticmethod
     def get_menu_id_and_time_of_day(choices):
+        time_of_day_map = {'1': 'breakfast', '2': 'lunch', '3': 'dinner'}
         while True:
             menu_id_str = input("Enter menu ID to give feedback: ")
-            time_of_day = input("Enter time of day (breakfast, lunch, dinner): ").lower()
+            time_of_day_choice = input("Enter time of day (1: breakfast, 2: lunch, 3: dinner): ").lower()
+            time_of_day = time_of_day_map.get(time_of_day_choice)
+            if time_of_day is None:
+                print("Invalid time of day choice. Please enter 1, 2, or 3.")
+                continue
             try:
                 menu_id = int(menu_id_str)
                 if menu_id not in [choice['menu_id'] for choice in choices if choice['time_of_day'] == time_of_day]:
@@ -89,6 +100,8 @@ class FeedbackService:
             except ValueError:
                 print("Invalid input. Please enter a valid integer rating between 1 and 5.")
 
+
+class FeedbackMarker:
     @staticmethod
     def mark_feedback_given(employee_id, menu_id, time_of_day):
         db = get_db_connection()
