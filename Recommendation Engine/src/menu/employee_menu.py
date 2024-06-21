@@ -15,7 +15,7 @@ class EmployeeMenu:
         'VIEW_FEEDBACK': '2',
         'CHOOSE_RECOMMENDED_ITEM': '3',
         'VIEW_NOTIFICATIONS': '4',
-        'REPLY_TO_FEEDBACK_REQUEST': '5',  # New option
+        'REPLY_TO_FEEDBACK_REQUEST': '5',  
         'LOGOUT': '6'
     }
 
@@ -26,7 +26,7 @@ class EmployeeMenu:
         print("2. View Feedback")
         print("3. Choose Recommended Item")
         print("4. View Notifications")
-        print("5. Reply to Feedback Request")  # New option
+        print("5. Reply to Feedback Request")  
         print("6. Logout")
 
     @staticmethod
@@ -36,7 +36,7 @@ class EmployeeMenu:
             EmployeeMenu.MENU_CHOICES['VIEW_FEEDBACK']: lambda: EmployeeMenu.view_feedback(employee_id),
             EmployeeMenu.MENU_CHOICES['CHOOSE_RECOMMENDED_ITEM']: lambda: EmployeeMenu.choose_recommended_item(employee_id),
             EmployeeMenu.MENU_CHOICES['VIEW_NOTIFICATIONS']: lambda: EmployeeMenu.view_notifications(employee_id),
-            EmployeeMenu.MENU_CHOICES['REPLY_TO_FEEDBACK_REQUEST']: lambda: EmployeeMenu.reply_to_feedback_request(employee_id),  # New option
+            EmployeeMenu.MENU_CHOICES['REPLY_TO_FEEDBACK_REQUEST']: lambda: EmployeeMenu.reply_to_feedback_request(employee_id), 
             EmployeeMenu.MENU_CHOICES['LOGOUT']: lambda: EmployeeMenu.logout(employee_id)
         }
 
@@ -61,14 +61,13 @@ class EmployeeMenu:
             print("Invalid Notification ID.")
             return True
 
-        # Check if the user has already replied to this notification
+       
         if NotificationDatabaseHandler.user_has_replied(notification_id, employee_id):
             print("You have already replied to this notification.")
             return True
 
-        # Extract the item name from the message
         message_parts = notification['message'].split(' ')
-        item_name = message_parts[5]  # Assuming the item name is at the 5th position in the message
+        item_name = message_parts[5]  
         item_name = item_name.rstrip('.')
 
         reply1 = input(f"Q1. What didn’t you like about {item_name}? ")

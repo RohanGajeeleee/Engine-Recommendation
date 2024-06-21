@@ -55,9 +55,7 @@ class NotificationDatabaseHandler:
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
-            # Update the search pattern to be more specific to feedback requests
             search_pattern = f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us.%"
-            
             query = "SELECT * FROM notifications WHERE message LIKE %s"
             cursor.execute(query, (search_pattern,))
             results = cursor.fetchall()
@@ -208,20 +206,6 @@ class NotificationDatabaseHandler:
             cursor.close()
             db.close()
 
-    @staticmethod
-    def update_notification(employee_id, message):
-        db = get_db_connection()
-        cursor = db.cursor()
-        try:
-            query = "UPDATE notifications SET message = %s WHERE employee_id = %s"
-            cursor.execute(query, (message, employee_id))
-            db.commit()
-            print("Notification updated successfully")
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-        finally:
-            cursor.close()
-            db.close()
 
     @staticmethod
     def fetch_notifications(employee_id):

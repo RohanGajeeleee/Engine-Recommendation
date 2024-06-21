@@ -176,7 +176,10 @@ class Recommendation:
     def determine_recommendations(items, sentiments, threshold=3.0):
         sentiment_dict = {item['id']: 0 for item in items}
         for sentiment in sentiments:
-            sentiment_dict[sentiment[0]] += sentiment[1]
+            menu_id = sentiment[0]
+            if menu_id not in sentiment_dict:
+                sentiment_dict[menu_id] = 0
+            sentiment_dict[menu_id] += sentiment[1]
 
         for item in items:
             item['sentiment_score'] = sentiment_dict.get(item['id'], 0)
@@ -331,7 +334,7 @@ class Recommendation:
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
-            # Retrieve menu items with their ratings
+            
             query = """
             SELECT m.id, m.name, AVG(f.rating) as avg_rating
             FROM menu m
@@ -341,10 +344,9 @@ class Recommendation:
             cursor.execute(query)
             items = cursor.fetchall()
 
-            # Fetch sentiments using the new method
+           
             sentiments = SentimentAnalyzer.fetch_sentiments()
 
-            # Create a dictionary of sentiments by menu_id
             sentiment_dict = {}
             for menu_id, score in sentiments:
                 sentiment = convert_score_to_sentiment(score)
@@ -352,7 +354,6 @@ class Recommendation:
                     sentiment_dict[menu_id] = {'positive': 0, 'negative': 0, 'neutral': 0}
                 sentiment_dict[menu_id][sentiment.lower()] += 1
 
-            # Filter items based on rating and negative sentiments
             items_to_discard = []
             for item in items:
                 avg_rating = item['avg_rating']
@@ -375,18 +376,18 @@ class Recommendation:
         cursor = db.cursor()
         try:
             for item in items:
-                # Insert into discarded_items
+               
                 query = "INSERT INTO discarded_items (menu_id, name, average_rating, sentiments) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (item['id'], item['name'], item['avg_rating'], item['sentiments']))
 
-            # Commit the transaction before deleting to avoid constraint issues
+           
             db.commit()
 
-            # Temporarily disable foreign key checks
+           
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
 
             for item in items:
-                # Remove from other tables
+               
                 query_list = [
                     "DELETE FROM current_menu WHERE menu_id = %s",
                     "DELETE FROM next_day_menu WHERE menu_id = %s",
@@ -396,7 +397,7 @@ class Recommendation:
                 for query in query_list:
                     cursor.execute(query, (item['id'],))
 
-            # Re-enable foreign key checks
+            
             cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 
             db.commit()
@@ -440,7 +441,7 @@ class Recommendation:
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
-            # Fetch the discarded item details
+            
             query = "SELECT * FROM discarded_items WHERE name = %s"
             cursor.execute(query, (item_name,))
             item = cursor.fetchone()
@@ -449,15 +450,12 @@ class Recommendation:
                 print(f"Item '{item_name}' not found in discarded items.")
                 return
 
-            # Add the item back to the menu table
             query = "INSERT INTO menu (id, name, price, availability) VALUES (%s, %s, %s, 'Available')"
-            cursor.execute(query, (item['menu_id'], item['name'], item['average_rating']))  # Assuming avg_rating was used as the price
+            cursor.execute(query, (item['menu_id'], item['name'], item['average_rating']))  
 
-            # Remove the item from discarded_items table
             query = "DELETE FROM discarded_items WHERE name = %s"
             cursor.execute(query, (item_name,))
 
-            # Remove feedback related to the item
             query = "DELETE FROM feedback WHERE menu_id = %s"
             cursor.execute(query, (item['menu_id'],))
 
