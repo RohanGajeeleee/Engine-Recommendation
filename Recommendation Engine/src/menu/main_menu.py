@@ -9,6 +9,7 @@ from .admin_menu import AdminMenu
 from .chef_menu import ChefMenu
 from .employee_menu import EmployeeMenu
 from src.services.reset_service import ResetService
+from src.services.recommendation_service import RecommendationService
 from src.models.recommendations import Recommendation
 
 class MainMenu:
@@ -99,6 +100,7 @@ class MainMenu:
     def next_day():
         MainMenu.current_date += datetime.timedelta(days=1)
         if ResetService.reset_daily_data():
+            RecommendationService.check_discard_criteria()
             MainMenu.first_day = False
             print(f"Simulated date: {MainMenu.current_date}")
             print("Chef needs to log in and generate food recommendations for the next day.")
@@ -138,3 +140,4 @@ class MainMenu:
             choice = input("Enter choice: ")
             if not EmployeeMenu.handle_choice(employee_id, choice, MainMenu.first_day, MainMenu.current_date):
                 break
+    

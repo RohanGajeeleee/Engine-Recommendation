@@ -24,7 +24,10 @@ class Notification:
     def send_to_all_employees(message):
         employees = NotificationDatabaseHandler.fetch_all_employees()
         for employee in employees:
-            Notification.send(employee[0], message)
+            if NotificationDatabaseHandler.employee_exists(employee[0]):
+                Notification.send(employee[0], message)
+            else:
+                print(f"Error: Employee ID {employee[0]} does not exist.")
 
     @staticmethod
     def handle_client(client_socket):
@@ -39,10 +42,106 @@ class Notification:
         notifications = NotificationDatabaseHandler.fetch_notifications(employee_id)
         NotificationDatabaseHandler.clear_notifications(employee_id, notifications)
         return notifications
+    
+    @staticmethod
+    def send_to_chef(message):
+        chef_ids = NotificationDatabaseHandler.fetch_chefs()
+        for chef_id in chef_ids:
+            Notification.send(chef_id, message)
 
 class NotificationDatabaseHandler:
     @staticmethod
+    def get_feedback_request_notifications():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT n.id, n.message, di.menu_id
+            FROM notifications n
+            JOIN discarded_items di ON n.message LIKE CONCAT('%', di.menu_id, '%')
+            WHERE n.message LIKE 'We are trying to improve your experience%'
+            """
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def save_reply(notification_id, employee_id, reply):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "INSERT INTO notification_replies (notification_id, employee_id, reply, reply_date) VALUES (%s, %s, %s, NOW())"
+            cursor.execute(query, (notification_id, employee_id, reply))
+            db.commit()
+            print("Reply saved successfully")
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def get_latest_notification_id(item_name):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = """
+            SELECT id FROM notifications 
+            WHERE message LIKE %s 
+            ORDER BY created_at DESC LIMIT 1
+            """
+            cursor.execute(query, (f'%{item_name}%',))
+            result = cursor.fetchone()
+            return result[0] if result else None
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return None
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def get_feedback_replies():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT r.employee_id, r.reply, r.reply_date
+            FROM notification_replies r
+            JOIN notifications n ON r.notification_id = n.id
+            WHERE n.message LIKE 'We are trying to improve your experience with%' 
+            """
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def employee_exists(employee_id):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT COUNT(*) FROM users WHERE employee_id = %s"
+            cursor.execute(query, (employee_id,))
+            result = cursor.fetchone()
+            return result[0] > 0
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return False
+        finally:
+            cursor.close()
+            db.close()
+
+    @staticmethod
     def save_notification(employee_id, message):
+        if not NotificationDatabaseHandler.employee_exists(employee_id):
+            print(f"Error: Employee ID {employee_id} does not exist.")
+            return
         db = get_db_connection()
         cursor = db.cursor()
         try:
@@ -52,6 +151,20 @@ class NotificationDatabaseHandler:
             print("Notification saved successfully")
         except mysql.connector.Error as err:
             print(f"Error: {err}")
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def fetch_chefs():
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT employee_id FROM users WHERE role = 'chef'"
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
         finally:
             cursor.close()
             db.close()

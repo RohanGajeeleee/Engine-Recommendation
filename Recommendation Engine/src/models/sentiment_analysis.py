@@ -1,6 +1,7 @@
 import mysql.connector
 import os
 
+from src.Database.db_config import get_db_connection
 # Function to load words from a file
 def load_words_from_file(file_path, is_weighted=False):
     words = {} if is_weighted else set()
@@ -75,6 +76,22 @@ class SentimentAnalyzer:
             for menu_id, comment in results:
                 score = analyze_sentiment(comment)
                 sentiments.append((menu_id, comment, score))
+            return sentiments
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def fetch_sentiments():
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT menu_id, comment FROM feedback"
+            cursor.execute(query)
+            results = cursor.fetchall()
+            sentiments = [(menu_id, analyze_sentiment(comment)) for menu_id, comment in results]
             return sentiments
         except mysql.connector.Error as err:
             print(f"Error: {err}")

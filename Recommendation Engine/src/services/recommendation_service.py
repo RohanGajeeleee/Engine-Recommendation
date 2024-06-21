@@ -1,4 +1,7 @@
 from src.models.recommendations import Recommendation
+from src.models.notifications import Notification
+import mysql.connector
+from src.Database.db_config import get_db_connection
 
 class RecommendationService:
     @staticmethod
@@ -97,4 +100,98 @@ class RecommendationService:
         for item in items_to_display:
             avg_rating = "No Rating" if item['avg_rating'] is None or item['avg_rating'] == 0 else f"{item['avg_rating']:.2f}"
             print(f"ID: {item['id']}, Name: {item['name']}, Price: {item['price']}, Average Rating: {avg_rating}, Recommended: {item['recommended']}")
+    @staticmethod
+    def check_discard_criteria():
+        items_to_discard = Recommendation.fetch_items_to_discard()
+        if items_to_discard:
+            Recommendation.move_to_discarded_items(items_to_discard)
+    @staticmethod
+    def get_discarded_items():
+        return Recommendation.fetch_discarded_items()
 
+    @staticmethod
+    def remove_item(item_name):
+        Recommendation.remove_item_from_discarded(item_name)
+        print(f"Item '{item_name}' removed from menu.")
+
+    @staticmethod
+    def request_detailed_feedback(item_name):
+        Notification.send_to_all_employees(
+            f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us. "
+            f"Q1. What didn’t you like about {item_name}? "
+            f"Q2. How would you like {item_name} to taste? "
+            f"Q3. Share your mom’s recipe"
+        )
+        print(f"Feedback request sent for '{item_name}'.")
+        
+    @staticmethod
+    def check_discard_criteria():
+        items_to_discard = Recommendation.fetch_items_to_discard()
+        if items_to_discard:
+            Recommendation.move_to_discarded_items(items_to_discard)
+    @staticmethod
+    def bring_back_discarded_item(item_name):
+        Recommendation.bring_back_discarded_item(item_name)
+        print(f"Item '{item_name}' has been brought back to the menu.")
+    @staticmethod
+    def send_detailed_feedback_to_chef(employee_id, item_id, feedback):
+        feedback_message = (
+            f"Detailed Feedback for Item ID {item_id} from Employee ID {employee_id}\n"
+            f"Q1: {feedback['Q1']}\n"
+            f"Q2: {feedback['Q2']}\n"
+            f"Q3: {feedback['Q3']}\n"
+        )
+        Notification.send_to_chef(feedback_message)
+
+    @staticmethod
+    def get_discarded_items():
+        return Recommendation.fetch_discarded_items()
+
+    @staticmethod
+    def remove_item(item_name):
+        Recommendation.remove_item_from_discarded(item_name)
+        print(f"Item '{item_name}' removed from menu.")
+
+    @staticmethod
+    def request_detailed_feedback(item_name):
+        message = (
+            f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us.\n"
+            f"Q1. What didn’t you like about {item_name}?\n"
+            f"Q2. How would you like {item_name} to taste?\n"
+            f"Q3. Share your mom’s recipe for {item_name}."
+        )
+        Notification.send_to_all_employees(message)
+        print(f"Feedback request sent for '{item_name}'.")
+
+    @staticmethod
+    def check_discard_criteria():
+        items_to_discard = Recommendation.fetch_items_to_discard()
+        if items_to_discard:
+            Recommendation.move_to_discarded_items(items_to_discard)
+    @staticmethod
+    def prompt_detailed_feedback(item_id):
+        feedback = {}
+        feedback['Q1'] = input(f"Q1. What didn’t you like about item ID {item_id}? ")
+        feedback['Q2'] = input(f"Q2. How would you like item ID {item_id} to taste? ")
+        feedback['Q3'] = input(f"Q3. Share your mom’s recipe for item ID {item_id}. ")
+        return feedback
+
+    @staticmethod
+    def get_feedback_replies():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT r.employee_id, r.reply, r.reply_date
+            FROM notification_replies r
+            JOIN notifications n ON r.notification_id = n.id
+            WHERE n.message LIKE 'We are trying to improve your experience with%' 
+            """
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()
