@@ -61,7 +61,16 @@ class EmployeeMenu:
             print("Invalid Notification ID.")
             return True
 
-        item_name = notification['message'].split(' ')[5]  # Assuming the item name is at the 5th position in the message
+        # Check if the user has already replied to this notification
+        if NotificationDatabaseHandler.user_has_replied(notification_id, employee_id):
+            print("You have already replied to this notification.")
+            return True
+
+        # Extract the item name from the message
+        message_parts = notification['message'].split(' ')
+        item_name = message_parts[5]  # Assuming the item name is at the 5th position in the message
+        item_name = item_name.rstrip('.')
+
         reply1 = input(f"Q1. What didn’t you like about {item_name}? ")
         reply2 = input(f"Q2. How would you like {item_name} to taste? ")
         reply3 = input(f"Q3. Share your mom’s recipe for {item_name}. ")
@@ -71,31 +80,6 @@ class EmployeeMenu:
         NotificationDatabaseHandler.save_reply(notification_id, employee_id, complete_reply)
         print(f"Reply sent for '{item_name}'.")
         return True
-
-    @staticmethod
-    def reply_to_discard_item(employee_id):
-        discarded_items = RecommendationService.get_discarded_items()
-        if not discarded_items:
-            print("No discarded items requiring feedback.")
-            return True
-
-        for item in discarded_items:
-            print(f"Discarded Item ID: {item['menu_id']}, Name: {item['name']}")
-
-        while True:
-            try:
-                item_id = int(input("Enter the Discarded Item ID to reply to: ").strip())
-                if item_id not in [item['menu_id'] for item in discarded_items]:
-                    print("Invalid Item ID. Please try again.")
-                else:
-                    break
-            except ValueError:
-                print("Invalid input. Please enter a valid Item ID.")
-
-        feedback = EmployeeMenu.prompt_detailed_feedback(item_id)
-        RecommendationService.send_detailed_feedback_to_chef(employee_id, item_id, feedback)
-        return True
-
     @staticmethod
     def prompt_detailed_feedback(item_id):
         feedback = {}

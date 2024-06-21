@@ -51,14 +51,32 @@ class Notification:
 
 class NotificationDatabaseHandler:
     @staticmethod
+    def fetch_notifications_by_item_name(item_name):
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            # Update the search pattern to be more specific to feedback requests
+            search_pattern = f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us.%"
+            
+            query = "SELECT * FROM notifications WHERE message LIKE %s"
+            cursor.execute(query, (search_pattern,))
+            results = cursor.fetchall()
+            return results
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()
+     
+    @staticmethod
     def get_feedback_request_notifications():
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
             query = """
-            SELECT n.id, n.message, di.menu_id
+            SELECT n.id, n.message
             FROM notifications n
-            JOIN discarded_items di ON n.message LIKE CONCAT('%', di.menu_id, '%')
             WHERE n.message LIKE 'We are trying to improve your experience%'
             """
             cursor.execute(query)
@@ -74,16 +92,37 @@ class NotificationDatabaseHandler:
         db = get_db_connection()
         cursor = db.cursor()
         try:
+            query = "SELECT COUNT(*) FROM notification_replies WHERE notification_id = %s AND employee_id = %s"
+            cursor.execute(query, (notification_id, employee_id))
+            if cursor.fetchone()[0] > 0:
+                print("You have already replied to this notification.")
+                return
+
             query = "INSERT INTO notification_replies (notification_id, employee_id, reply, reply_date) VALUES (%s, %s, %s, NOW())"
             cursor.execute(query, (notification_id, employee_id, reply))
             db.commit()
             print("Reply saved successfully")
         except mysql.connector.Error as err:
+            db.rollback()
             print(f"Error: {err}")
         finally:
             cursor.close()
             db.close()
     @staticmethod
+    def user_has_replied(notification_id, employee_id):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT COUNT(*) FROM notification_replies WHERE notification_id = %s AND employee_id = %s"
+            cursor.execute(query, (notification_id, employee_id))
+            result = cursor.fetchone()
+            return result[0] > 0
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return False
+        finally:
+            cursor.close()
+            db.close()
     def get_latest_notification_id(item_name):
         db = get_db_connection()
         cursor = db.cursor()

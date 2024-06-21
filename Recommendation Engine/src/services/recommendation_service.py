@@ -1,5 +1,6 @@
 from src.models.recommendations import Recommendation
 from src.models.notifications import Notification
+from src.models.notifications import NotificationDatabaseHandler
 import mysql.connector
 from src.Database.db_config import get_db_connection
 
@@ -114,15 +115,7 @@ class RecommendationService:
         Recommendation.remove_item_from_discarded(item_name)
         print(f"Item '{item_name}' removed from menu.")
 
-    @staticmethod
-    def request_detailed_feedback(item_name):
-        Notification.send_to_all_employees(
-            f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us. "
-            f"Q1. What didn’t you like about {item_name}? "
-            f"Q2. How would you like {item_name} to taste? "
-            f"Q3. Share your mom’s recipe"
-        )
-        print(f"Feedback request sent for '{item_name}'.")
+    
         
     @staticmethod
     def check_discard_criteria():
@@ -154,6 +147,12 @@ class RecommendationService:
 
     @staticmethod
     def request_detailed_feedback(item_name):
+        # Check if a feedback request notification for this item already exists
+        existing_notifications = NotificationDatabaseHandler.fetch_notifications_by_item_name(item_name)
+        if existing_notifications:
+            print(f"A feedback request for '{item_name}' has already been sent.")
+            return
+
         message = (
             f"We are trying to improve your experience with {item_name}. Please provide your feedback and help us.\n"
             f"Q1. What didn’t you like about {item_name}?\n"
@@ -162,6 +161,8 @@ class RecommendationService:
         )
         Notification.send_to_all_employees(message)
         print(f"Feedback request sent for '{item_name}'.")
+        
+    
 
     @staticmethod
     def check_discard_criteria():
