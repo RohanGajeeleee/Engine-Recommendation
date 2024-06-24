@@ -1,12 +1,10 @@
-import socket
+import sys
+import os
 
-def send_request(request):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('127.0.0.1', 9999))
-    client.send(request.encode('utf-8'))
-    response = client.recv(1024).decode('utf-8')
-    client.close()
-    return response
+# Adjust the path to include the root directory and presentation directory
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src')))
+from presentation.admin_menu import AdminMenu
+from common.network_utils import send_request
 
 def main_menu():
     while True:
@@ -42,6 +40,15 @@ def login():
     request = f"AUTH {employee_id} {password}"
     response = send_request(request)
     print(response)
+    if response.startswith("Authenticated as admin"):
+        run_admin_menu()
+
+def run_admin_menu():
+    while True:
+        AdminMenu.display()
+        choice = input("Enter choice: ")
+        if not AdminMenu.handle_choice(choice):
+            break
 
 if __name__ == "__main__":
     main_menu()
