@@ -38,8 +38,8 @@ class InputValidator:
     @staticmethod
     def get_valid_item_id(prompt):
         while True:
-            item_id_input = input(prompt).strip()
-            try:
-                return int(item_id_input)
-            except ValueError:
+            user_input = input(prompt).strip()
+            if not user_input.isdigit():
                 print("Invalid item ID. Please enter a valid number.")
+            else:
+                return int(user_input)

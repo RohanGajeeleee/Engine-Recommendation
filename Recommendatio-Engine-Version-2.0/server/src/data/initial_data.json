@@ -1,0 +1,17 @@
+{
+    "menu_items": [
+      {"name": "Pasta", "price": 10.0, "availability": "Available"},
+      {"name": "Salad", "price": 8.0, "availability": "Available"},
+      {"name": "Burger", "price": 12.0, "availability": "Available"},
+      {"name": "Pizza", "price": 15.0, "availability": "Available"},
+      {"name": "Sushi", "price": 20.0, "availability": "Available"}
+    ],
+    "current_menu_items": [
+      {"menu_id": 1},
+      {"menu_id": 2},
+      {"menu_id": 3},
+      {"menu_id": 4},
+      {"menu_id": 5}
+    ]
+  }
+  

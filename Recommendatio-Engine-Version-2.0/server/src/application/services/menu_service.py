@@ -14,7 +14,6 @@ class MenuService:
         except Exception as e:
             logging.error(f"Error listing items: {e}")
             return f"Error listing items: {e}"
-
     @staticmethod
     def add_item(name, price, availability):
         try:
