@@ -1,4 +1,0 @@
-mysql-connector-python
-pylint
-pylint-django
-pandas
