@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from common.network_utils import send_request
 from common.input_validation import InputValidator
-from common.db_checker import DBChecker
+from src.common.menu_item_checker import MenuItemChecker
 
 class AdminMenu:
     MENU_CHOICES = {
@@ -51,7 +51,7 @@ class AdminMenu:
     @staticmethod
     def update_item():
         AdminMenu.view_menu()
-        item_id = DBChecker.get_existing_item_id("Enter item ID to update: ")
+        item_id = MenuItemChecker.get_existing_item_id("Enter item ID to update: ")
         name = InputValidator.get_valid_input("Enter new name (or leave blank to keep current): ", allow_empty=True)
         price = InputValidator.get_valid_price("Enter new price (or leave blank to keep current): ", allow_empty=True)
         availability = InputValidator.get_valid_availability("Enter new availability (1 for Available, 2 for Unavailable, or leave blank to keep current): ", allow_empty=True)
@@ -63,7 +63,7 @@ class AdminMenu:
     @staticmethod
     def delete_item():
         AdminMenu.view_menu()
-        item_id = DBChecker.get_existing_item_id("Enter item ID to delete: ")
+        item_id = MenuItemChecker.get_existing_item_id("Enter item ID to delete: ")
         request = f"DELETE_ITEM {item_id}"
         response = send_request(request)
         print(response)

@@ -43,3 +43,19 @@ class InputValidator:
                 print("Invalid item ID. Please enter a valid number.")
             else:
                 return int(user_input)
+    @staticmethod
+    def get_valid_rating(prompt):
+        while True:
+            rating_input = input(prompt).strip()
+            if not rating_input.isdigit() or not (1 <= int(rating_input) <= 5):
+                print("Invalid rating. Please enter a number between 1 and 5.")
+            else:
+                return int(rating_input)
+    @staticmethod
+    def get_valid_time_of_day(prompt):
+        while True:
+            time_of_day = input(prompt).strip().lower()
+            if time_of_day in ['breakfast', 'lunch', 'dinner']:
+                return time_of_day
+            else:
+                print("Invalid time of day. Please enter 'breakfast', 'lunch', or 'dinner'.")
