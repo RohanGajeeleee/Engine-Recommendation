@@ -59,3 +59,14 @@ class InputValidator:
                 return time_of_day
             else:
                 print("Invalid time of day. Please enter 'breakfast', 'lunch', or 'dinner'.")
+    @staticmethod
+    def get_valid_number(prompt):
+        while True:
+            try:
+                num = int(input(prompt))
+                if num > 0:
+                    return num
+                else:
+                    print("Please enter a positive number.")
+            except ValueError:
+                print("Invalid input. Please enter a valid number.")

@@ -5,12 +5,14 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from common.network_utils import send_request
 from common.menu_item_checker import MenuItemChecker
+from common.input_validation import InputValidator
 
 class ChefMenu:
     MENU_CHOICES = {
         'VIEW_FEEDBACK': '1',
         'CHOOSE_MENU_ITEMS': '2',
-        'LOGOUT': '3'
+        'GENERATE_RECOMMENDATIONS': '3',
+        'LOGOUT': '4'
     }
 
     @staticmethod
@@ -18,18 +20,31 @@ class ChefMenu:
         print("\nChef Menu")
         print("1. View Feedback")
         print("2. Choose Menu Items")
-        print("3. Logout")
+        print("3. Generate Recommendations")
+        print("4. Logout")
 
     @staticmethod
     def handle_choice(chef_id, choice):
         actions = {
-            ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: ChefMenu.view_feedback,
-            ChefMenu.MENU_CHOICES['CHOOSE_MENU_ITEMS']: ChefMenu.choose_menu_items,
+            ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: FeedbackManager.view_feedback,
+            ChefMenu.MENU_CHOICES['CHOOSE_MENU_ITEMS']: MenuManager.choose_menu_items,
+            ChefMenu.MENU_CHOICES['GENERATE_RECOMMENDATIONS']: RecommendationManager.generate_recommendations,
             ChefMenu.MENU_CHOICES['LOGOUT']: ChefMenu.logout
         }
         action = actions.get(choice, ChefMenu.invalid_choice)
         return action(chef_id)
 
+    @staticmethod
+    def logout(chef_id):
+        print("Logged out successfully")
+        return False
+
+    @staticmethod
+    def invalid_choice(chef_id):
+        print("Invalid choice. Please try again.")
+        return True
+
+class FeedbackManager:
     @staticmethod
     def view_feedback(chef_id):
         request = "VIEW_FEEDBACK"
@@ -37,9 +52,9 @@ class ChefMenu:
         print(response)
         return True
 
+class MenuManager:
     @staticmethod
     def choose_menu_items(chef_id):
-        # Clear current menu
         clear_request = "CLEAR_CURRENT_MENU"
         clear_response = send_request(clear_request)
         if clear_response != "Current menu cleared":
@@ -73,13 +88,22 @@ class ChefMenu:
             print(add_response)
 
         return True
-    
-    @staticmethod
-    def logout(chef_id):
-        print("Logged out successfully")
-        return False
 
+class RecommendationManager:
     @staticmethod
-    def invalid_choice(chef_id):
-        print("Invalid choice. Please try again.")
+    def generate_recommendations(chef_id):
+        try:
+            num_recommendations = int(input("Enter the number of recommendations you want to generate: "))
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+            return True
+
+        request = f"GENERATE_RECOMMENDATIONS {num_recommendations}"
+        response = send_request(request)
+        print(response)
+
+        fetch_request = f"FETCH_RECOMMENDATIONS {num_recommendations}"
+        fetch_response = send_request(fetch_request)
+        print(fetch_response)
+
         return True

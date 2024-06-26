@@ -1,3 +1,4 @@
+# client/src/presentation/admin_menu.py
 
 import sys
 import os
@@ -29,15 +30,16 @@ class AdminMenu:
     @staticmethod
     def handle_choice(choice):
         actions = {
-            AdminMenu.MENU_CHOICES['ADD_ITEM']: AdminMenu.add_item,
-            AdminMenu.MENU_CHOICES['UPDATE_ITEM']: AdminMenu.update_item,
-            AdminMenu.MENU_CHOICES['DELETE_ITEM']: AdminMenu.delete_item,
-            AdminMenu.MENU_CHOICES['VIEW_MENU']: AdminMenu.view_menu,
-            AdminMenu.MENU_CHOICES['LOGOUT']: AdminMenu.logout
+            AdminMenu.MENU_CHOICES['ADD_ITEM']: MenuManager.add_item,
+            AdminMenu.MENU_CHOICES['UPDATE_ITEM']: MenuManager.update_item,
+            AdminMenu.MENU_CHOICES['DELETE_ITEM']: MenuManager.delete_item,
+            AdminMenu.MENU_CHOICES['VIEW_MENU']: MenuManager.view_menu,
+            AdminMenu.MENU_CHOICES['LOGOUT']: UserSession.logout
         }
-        action = actions.get(choice, AdminMenu.invalid_choice)
+        action = actions.get(choice, UserSession.invalid_choice)
         return action()
 
+class MenuManager:
     @staticmethod
     def add_item():
         name = InputValidator.get_valid_input("Enter item name: ")
@@ -50,7 +52,7 @@ class AdminMenu:
 
     @staticmethod
     def update_item():
-        AdminMenu.view_menu()
+        MenuManager.view_menu()
         item_id = MenuItemChecker.get_existing_item_id("Enter item ID to update: ")
         name = InputValidator.get_valid_input("Enter new name (or leave blank to keep current): ", allow_empty=True)
         price = InputValidator.get_valid_price("Enter new price (or leave blank to keep current): ", allow_empty=True)
@@ -62,7 +64,7 @@ class AdminMenu:
 
     @staticmethod
     def delete_item():
-        AdminMenu.view_menu()
+        MenuManager.view_menu()
         item_id = MenuItemChecker.get_existing_item_id("Enter item ID to delete: ")
         request = f"DELETE_ITEM {item_id}"
         response = send_request(request)
@@ -76,6 +78,7 @@ class AdminMenu:
         print(response)
         return True
 
+class UserSession:
     @staticmethod
     def logout():
         print("Logged out successfully")

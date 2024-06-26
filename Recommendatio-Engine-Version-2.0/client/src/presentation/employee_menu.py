@@ -30,15 +30,16 @@ class EmployeeMenu:
     @staticmethod
     def handle_choice(employee_id, choice, first_day, current_date):
         actions = {
-            EmployeeMenu.MENU_CHOICES['ADD_FEEDBACK']: lambda: EmployeeMenu.add_feedback(employee_id, current_date),
-            EmployeeMenu.MENU_CHOICES['VIEW_FEEDBACK']: EmployeeMenu.view_feedback,
-            EmployeeMenu.MENU_CHOICES['CHOOSE_RECOMMENDED_ITEM']: lambda: EmployeeMenu.choose_recommended_item(employee_id),
-            EmployeeMenu.MENU_CHOICES['VIEW_NOTIFICATIONS']: lambda: EmployeeMenu.view_notifications(employee_id),
-            EmployeeMenu.MENU_CHOICES['LOGOUT']: EmployeeMenu.logout
+            EmployeeMenu.MENU_CHOICES['ADD_FEEDBACK']: lambda: FeedbackManager.add_feedback(employee_id, current_date),
+            EmployeeMenu.MENU_CHOICES['VIEW_FEEDBACK']: FeedbackManager.view_feedback,
+            EmployeeMenu.MENU_CHOICES['CHOOSE_RECOMMENDED_ITEM']: lambda: RecommendationManager.choose_recommended_item(employee_id),
+            EmployeeMenu.MENU_CHOICES['VIEW_NOTIFICATIONS']: lambda: NotificationManager.view_notifications(employee_id),
+            EmployeeMenu.MENU_CHOICES['LOGOUT']: UserSession.logout
         }
-        action = actions.get(choice, EmployeeMenu.invalid_choice)
+        action = actions.get(choice, UserSession.invalid_choice)
         return action()
 
+class FeedbackManager:
     @staticmethod
     def add_feedback(employee_id, current_date):
         time_of_day = InputValidator.get_valid_time_of_day("Enter time of day (breakfast, lunch, dinner): ")
@@ -59,6 +60,7 @@ class EmployeeMenu:
         response = send_request(request)
         print(response)
         return True
+
     @staticmethod
     def view_feedback():
         request = "VIEW_FEEDBACK"
@@ -66,12 +68,11 @@ class EmployeeMenu:
         print(response)
         return True
 
+class RecommendationManager:
     @staticmethod
     def choose_recommended_item(employee_id):
-        # Fetch the current menu items
         current_menu_items = MenuItemChecker.fetch_current_menu_items()
 
-        # Display current menu items
         print("\nCurrent Menu Items:")
         for item in current_menu_items:
             print(f"ID: {item['id']}, Name: {item['name']}")
@@ -83,6 +84,7 @@ class EmployeeMenu:
         print(response)
         return True
 
+class NotificationManager:
     @staticmethod
     def view_notifications(employee_id):
         request = f"VIEW_NOTIFICATIONS {employee_id}"
@@ -90,6 +92,7 @@ class EmployeeMenu:
         print(response)
         return True
 
+class UserSession:
     @staticmethod
     def logout():
         print("Logged out successfully")

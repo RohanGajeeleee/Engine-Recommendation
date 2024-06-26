@@ -60,3 +60,23 @@ class MenuRepository:
         finally:
             cursor.close()
             db.close()
+    @staticmethod
+    def fetch_all_menu_items():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT m.id, m.name, m.price, m.availability,
+                   AVG(f.rating) AS avg_rating, COUNT(f.id) AS feedback_count
+            FROM menu m
+            LEFT JOIN feedback f ON m.id = f.menu_id
+            GROUP BY m.id
+            """
+            cursor.execute(query)
+            return cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return []
+        finally:
+            cursor.close()
+            db.close()

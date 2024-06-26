@@ -3,6 +3,7 @@ from src.application.services.user_service import UserService
 from src.application.services.menu_service import MenuService
 from src.application.services.feedback_service import FeedbackService
 from src.application.services.current_menu_service import CurrentMenuService
+from src.application.services.recommendation_service import RecommendationService
 
 class RequestHandler:
     @staticmethod
@@ -37,6 +38,10 @@ class RequestHandler:
                 return CurrentMenuService.clear_current_menu()
             elif command == "ADD_TO_CURRENT_MENU":
                 return RequestHandler.handle_add_to_current_menu(parts)
+            elif command == "GENERATE_RECOMMENDATIONS":
+                return RequestHandler.handle_generate_recommendations(parts)
+            elif command == "FETCH_RECOMMENDATIONS":
+                return RequestHandler.handle_fetch_recommendations(parts)
             else:
                 logging.warning(f"Invalid command: {command}")
                 return "INVALID REQUEST"
@@ -130,3 +135,20 @@ class RequestHandler:
             return "Invalid ADD_TO_CURRENT_MENU command format"
         _, item_id = parts
         return CurrentMenuService.add_item_to_current_menu(int(item_id))
+    @staticmethod
+    def handle_generate_recommendations(parts):
+        if len(parts) != 2:
+            return "Invalid GENERATE_RECOMMENDATIONS command format"
+        _, num_items = parts
+        return RecommendationService.generate_custom_recommendations(int(num_items))
+    @staticmethod
+    def handle_fetch_recommendations(parts):
+        if len(parts) != 2:
+            return "Invalid FETCH_RECOMMENDATIONS command format"
+        _, num_items = parts
+        recommendations = RecommendationService.fetch_recommendations(int(num_items))
+        response = "\nRecommendations:\n"
+        for rec in recommendations:
+            avg_rating = "No Rating" if rec['avg_rating'] is None or rec['avg_rating'] == 0 else f"{rec['avg_rating']:.2f}"
+            response += f"ID: {rec['id']}, Name: {rec['name']}, Average Rating: {avg_rating}, Sentiment: {rec['sentiment']}\n"
+        return response
