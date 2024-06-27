@@ -12,7 +12,8 @@ class ChefMenu:
         'VIEW_FEEDBACK': '1',
         'CHOOSE_MENU_ITEMS': '2',
         'GENERATE_RECOMMENDATIONS': '3',
-        'LOGOUT': '4'
+        'DISCARD_MENU': '4',
+        'LOGOUT': '5'
     }
 
     @staticmethod
@@ -21,7 +22,8 @@ class ChefMenu:
         print("1. View Feedback")
         print("2. Choose Menu Items")
         print("3. Generate Recommendations")
-        print("4. Logout")
+        print("4. View Discarded Items")
+        print("5. Logout")
 
     @staticmethod
     def handle_choice(chef_id, choice):
@@ -29,11 +31,12 @@ class ChefMenu:
             ChefMenu.MENU_CHOICES['VIEW_FEEDBACK']: FeedbackManager.view_feedback,
             ChefMenu.MENU_CHOICES['CHOOSE_MENU_ITEMS']: MenuManager.choose_menu_items,
             ChefMenu.MENU_CHOICES['GENERATE_RECOMMENDATIONS']: RecommendationManager.generate_recommendations,
+            ChefMenu.MENU_CHOICES['DISCARD_MENU']: DiscardMenu.show_discard_menu,
             ChefMenu.MENU_CHOICES['LOGOUT']: ChefMenu.logout
         }
         action = actions.get(choice, ChefMenu.invalid_choice)
         return action(chef_id)
-
+    
     @staticmethod
     def logout(chef_id):
         print("Logged out successfully")
@@ -55,6 +58,7 @@ class FeedbackManager:
 class MenuManager:
     @staticmethod
     def choose_menu_items(chef_id):
+        send_request("CHECK_DISCARDED_ITEMS")
         clear_request = "CLEAR_CURRENT_MENU"
         clear_response = send_request(clear_request)
         if clear_response != "Current menu cleared":
@@ -73,6 +77,9 @@ class MenuManager:
             item_id = input("Enter item ID to add to current menu or 'done' to finish: ")
             if item_id.lower() == 'done':
                 if items_added:
+                    finalize_request = "FINALIZE_CURRENT_MENU"
+                    finalize_response = send_request(finalize_request)
+                    print(finalize_response)
                     break
                 else:
                     print("You must add at least one item to the current menu before finishing.")
@@ -107,3 +114,9 @@ class RecommendationManager:
         print(fetch_response)
 
         return True
+
+class DiscardMenu:
+    @staticmethod
+    def show_discard_menu(chef_id):
+        from src.presentation.discard_menu import DiscardMenu  
+        DiscardMenu.display()

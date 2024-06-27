@@ -1,5 +1,3 @@
-# client/src/presentation/employee_menu.py
-
 import sys
 import os
 
@@ -15,7 +13,8 @@ class EmployeeMenu:
         'VIEW_FEEDBACK': '2',
         'CHOOSE_RECOMMENDED_ITEM': '3',
         'VIEW_NOTIFICATIONS': '4',
-        'LOGOUT': '5'
+        'REPLY_FEEDBACK_REQUEST': '5',
+        'LOGOUT': '6'
     }
 
     @staticmethod
@@ -25,7 +24,8 @@ class EmployeeMenu:
         print("2. View Feedback")
         print("3. Choose Recommended Item")
         print("4. View Notifications")
-        print("5. Logout")
+        print("5. Reply to Feedback Request")
+        print("6. Logout")
 
     @staticmethod
     def handle_choice(employee_id, choice, first_day, current_date):
@@ -34,6 +34,7 @@ class EmployeeMenu:
             EmployeeMenu.MENU_CHOICES['VIEW_FEEDBACK']: FeedbackManager.view_feedback,
             EmployeeMenu.MENU_CHOICES['CHOOSE_RECOMMENDED_ITEM']: lambda: RecommendationManager.choose_recommended_item(employee_id),
             EmployeeMenu.MENU_CHOICES['VIEW_NOTIFICATIONS']: lambda: NotificationManager.view_notifications(employee_id),
+            EmployeeMenu.MENU_CHOICES['REPLY_FEEDBACK_REQUEST']: lambda: FeedbackRequestManager.reply_to_request(employee_id),
             EmployeeMenu.MENU_CHOICES['LOGOUT']: UserSession.logout
         }
         action = actions.get(choice, UserSession.invalid_choice)
@@ -89,6 +90,50 @@ class NotificationManager:
     def view_notifications(employee_id):
         request = f"VIEW_NOTIFICATIONS {employee_id}"
         response = send_request(request)
+        print(response)
+        return True
+
+class FeedbackRequestManager:
+    @staticmethod
+    def reply_to_request(employee_id):
+        request = f"FETCH_FEEDBACK_REQUESTS {employee_id}"
+        response = send_request(request)
+        feedback_requests = response.split('\n')
+        
+        feedback_requests = [req for req in feedback_requests if "ID:" in req]
+        
+        if not feedback_requests or feedback_requests[0].strip() == "":
+            print("No feedback requests available.")
+            return True
+
+        print("\nFeedback Requests:")
+        for i, request in enumerate(feedback_requests, start=1):
+            print(f"{i}. {request}")
+
+        choice = InputValidator.get_valid_number("Select the request you want to reply to (number): ")
+        if choice < 1 or choice > len(feedback_requests):
+            print("Invalid choice.")
+            return True
+
+        selected_request = feedback_requests[choice - 1]
+
+        if "ID: " not in selected_request:
+            print("Invalid request format.")
+            return True
+
+        try:
+            request_id = int(selected_request.split("ID: ")[1].split(",")[0])
+            menu_id = int(selected_request.split("MenuID: ")[1].split(")")[0])
+        except (IndexError, ValueError) as e:
+            print(f"Error parsing request ID or menu ID: {e}")
+            return True
+
+        q1 = InputValidator.get_valid_input("What didn’t you like about this item? ")
+        q2 = InputValidator.get_valid_input("How would you like this item to taste? ")
+        q3 = InputValidator.get_valid_input("Share your mom’s recipe for this item. ")
+
+        feedback_reply = f"REPLY_FEEDBACK_REQUEST {employee_id} {request_id} {menu_id} {q1} {q2} {q3}"
+        response = send_request(feedback_reply)
         print(response)
         return True
 

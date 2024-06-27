@@ -4,7 +4,9 @@ from src.application.services.menu_service import MenuService
 from src.application.services.feedback_service import FeedbackService
 from src.application.services.current_menu_service import CurrentMenuService
 from src.application.services.recommendation_service import RecommendationService
-
+from src.application.services.notification_service import NotificationService
+from src.application.services.discard_service import DiscardService
+from src.application.services.feedback_request_service import FeedbackRequestService
 class RequestHandler:
     @staticmethod
     def handle_request(request):
@@ -42,6 +44,28 @@ class RequestHandler:
                 return RequestHandler.handle_generate_recommendations(parts)
             elif command == "FETCH_RECOMMENDATIONS":
                 return RequestHandler.handle_fetch_recommendations(parts)
+            elif command == "FINALIZE_CURRENT_MENU":
+                return RequestHandler.handle_finalize_current_menu()
+            elif command == "VIEW_DISCARDED_ITEMS":
+                return RequestHandler.handle_view_discarded_items(parts)
+            elif command == "VIEW_NOTIFICATIONS":
+                return RequestHandler.handle_view_notifications(parts)
+            elif command == "VIEW_DISCARDED_ITEMS":
+                return RequestHandler.handle_view_discarded_items(parts)
+            elif command == "RESTORE_DISCARDED_ITEM":
+                return RequestHandler.handle_restore_discarded_item(parts)
+            elif command == "DELETE_DISCARDED_ITEM":
+                return RequestHandler.handle_delete_discarded_item(parts)
+            elif command == "REQUEST_FEEDBACK_ON_DISCARDED_ITEM":
+                return RequestHandler.handle_request_feedback_on_discarded_item(parts)
+            elif command == "CHECK_DISCARDED_ITEMS":
+                return RequestHandler.handle_check_discarded_items()
+            elif command == "FETCH_FEEDBACK_REQUESTS":
+                return RequestHandler.handle_fetch_feedback_requests(parts)
+            elif command == "VIEW_FEEDBACK_REPLIES":
+                return RequestHandler.handle_view_feedback_replies(parts)
+            elif command == "REPLY_FEEDBACK_REQUEST":
+                return RequestHandler.handle_reply_feedback_request(parts)
             else:
                 logging.warning(f"Invalid command: {command}")
                 return "INVALID REQUEST"
@@ -71,6 +95,7 @@ class RequestHandler:
         if len(parts) != 4:
             return "Invalid ADD_ITEM command format"
         _, name, price, availability = parts
+        NotificationService.send_to_all_employees(f"New menu item added: {name}")
         return MenuService.add_item(name, float(price), availability)
 
     @staticmethod
@@ -82,14 +107,25 @@ class RequestHandler:
         name = None if name == "null" else name
         price = None if price == "null" else float(price)
         availability = None if availability == "null" else availability
-        return MenuService.update_item(item_id, name, price, availability)
+        
+        item_name = MenuService.get_item_name(item_id)
+        
+        response = MenuService.update_item(item_id, name, price, availability)
+        NotificationService.send_to_all_employees(f"Menu item updated: {item_name if item_name else item_id}")
+        return response
 
     @staticmethod
     def handle_delete_item(parts):
         if len(parts) != 2:
             return "Invalid DELETE_ITEM command format"
         _, item_id = parts
-        return MenuService.delete_item(int(item_id))
+        item_id = int(item_id)
+       
+        item_name = MenuService.get_item_name(item_id)
+        
+        response = MenuService.delete_item(item_id)
+        NotificationService.send_to_all_employees(f"Menu item deleted: {item_name if item_name else item_id}")
+        return response
 
     @staticmethod
     def handle_view_menu():
@@ -152,3 +188,67 @@ class RequestHandler:
             avg_rating = "No Rating" if rec['avg_rating'] is None or rec['avg_rating'] == 0 else f"{rec['avg_rating']:.2f}"
             response += f"ID: {rec['id']}, Name: {rec['name']}, Average Rating: {avg_rating}, Sentiment: {rec['sentiment']}\n"
         return response
+    @staticmethod
+    def handle_finalize_current_menu():
+        new_menu_items = CurrentMenuService.finalize_current_menu()
+        if isinstance(new_menu_items, str):  
+            return new_menu_items
+        NotificationService.send_new_menu_notification(new_menu_items)
+        return "Menu finalized and notifications sent"
+    @staticmethod
+    def handle_view_notifications(parts):
+        if len(parts) != 2:
+            return "Invalid VIEW_NOTIFICATIONS command format"
+        _, employee_id = parts
+        return NotificationService.view_notifications(employee_id)
+    @staticmethod
+    def handle_view_discarded_items(parts):
+        return DiscardService.view_discarded_items()
+
+    @staticmethod
+    def handle_restore_discarded_item(parts):
+        if len(parts) != 2:
+            return "Invalid RESTORE_DISCARDED_ITEM command format"
+        _, item_id = parts
+        return DiscardService.restore_item(item_id)
+
+    @staticmethod
+    def handle_delete_discarded_item(parts):
+        if len(parts) != 2:
+            return "Invalid DELETE_DISCARDED_ITEM command format"
+        _, item_id = parts
+        return DiscardService.delete_item(item_id)
+
+    @staticmethod
+    def handle_request_feedback_on_discarded_item(parts):
+        if len(parts) != 2:
+            return "Invalid REQUEST_FEEDBACK_ON_DISCARDED_ITEM command format"
+        _, item_id = parts
+        return DiscardService.request_feedback(item_id)
+    @staticmethod
+    def handle_fetch_feedback_requests(parts):
+        if len(parts) != 2:
+            return "Invalid FETCH_FEEDBACK_REQUESTS command format"
+        _, employee_id = parts
+        return FeedbackRequestService.fetch_feedback_requests(employee_id)
+
+    @staticmethod
+    def handle_reply_feedback_request(parts):
+        if len(parts) < 7:
+            return "Invalid REPLY_FEEDBACK_REQUEST command format"
+        _, employee_id, request_id, menu_id, answer1, answer2, answer3 = parts
+        return FeedbackRequestService.reply_feedback_request(employee_id, request_id, menu_id, answer1, answer2, answer3)
+    @staticmethod
+    def handle_check_discarded_items():
+        DiscardService.move_to_discard_menu()
+        return "Checked and moved items to discard menu"
+    @staticmethod
+    def handle_view_feedback_replies(parts):
+        replies = FeedbackRequestService.fetch_feedback_replies()
+        if not replies:
+            return "No feedback replies available."
+        
+        response = "\nFeedback Replies:\n"
+        for reply in replies:
+            response += f"Notification ID: {reply['notification_id']}, Employee ID: {reply['employee_id']}, Reply: {reply['reply']}, Reply Date: {reply['reply_date']}\n"
+        return response 

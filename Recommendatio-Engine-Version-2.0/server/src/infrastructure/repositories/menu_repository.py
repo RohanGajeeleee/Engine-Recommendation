@@ -80,3 +80,40 @@ class MenuRepository:
         finally:
             cursor.close()
             db.close()
+    @staticmethod
+    def get_item_name(item_id):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = "SELECT name FROM menu WHERE id = %s"
+            cursor.execute(query, (item_id,))
+            result = cursor.fetchone()
+            if result:
+                return result[0]
+            return None
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return None
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def fetch_all_menu_items_with_feedback():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT m.id, m.name, m.price, m.availability, f.comment, f.rating
+            FROM menu m
+            LEFT JOIN feedback f ON m.id = f.menu_id
+            """
+            cursor.execute(query)
+            items = cursor.fetchall()
+            for item in items:
+                if item['rating'] is None:
+                    item['rating'] = 0
+            return items
+        finally:
+            cursor.close()
+            db.close()
+

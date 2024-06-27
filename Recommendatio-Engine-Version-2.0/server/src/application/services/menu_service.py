@@ -48,3 +48,6 @@ class MenuService:
         except Exception as e:
             logging.error(f"Error deleting item: {e}")
             return f"Error deleting item: {e}"
+    @staticmethod
+    def get_item_name(item_id):
+        return MenuRepository.get_item_name(item_id)

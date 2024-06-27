@@ -77,3 +77,37 @@ class FeedbackRepository:
         finally:
             cursor.close()
             db.close()
+    @staticmethod
+    def save_feedback_reply(feedback_reply):
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            query = """
+                INSERT INTO notification_replies (notification_id, employee_id, reply, reply_date, menu_id)
+                VALUES (%s, %s, %s, NOW(), %s)
+            """
+            cursor.execute(query, (feedback_reply['notification_id'], feedback_reply['employee_id'], feedback_reply['reply'], feedback_reply['menu_id'] ))
+
+            update_query = "UPDATE notifications SET is_read = 1 WHERE id = %s"
+            cursor.execute(update_query, (feedback_reply['notification_id'],))
+            
+            db.commit()
+        finally:
+            cursor.close()
+            db.close()
+    @staticmethod
+    def get_feedback_replies():
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+        try:
+            query = """
+            SELECT nr.notification_id, nr.employee_id, nr.reply, nr.reply_date
+            FROM notification_replies nr
+            JOIN notifications n ON nr.notification_id = n.id
+            """
+            cursor.execute(query)
+            results = cursor.fetchall()
+            return results
+        finally:
+            cursor.close()
+            db.close()

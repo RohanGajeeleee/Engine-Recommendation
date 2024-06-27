@@ -59,7 +59,7 @@ def run_admin_menu():
 def run_employee_menu(employee_id):
     from presentation.employee_menu import EmployeeMenu
     from datetime import datetime
-    first_day = False  # Set to True if it's the first day
+    first_day = False  
     current_date = datetime.now().date()
     while True:
         EmployeeMenu.display()

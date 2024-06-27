@@ -59,3 +59,14 @@ class CurrentMenuService:
         except Exception as e:
             logging.error(f"Error adding item to current menu: {e}")
             return f"Error adding item to current menu: {e}"
+    @staticmethod
+    def finalize_current_menu():
+        try:
+            new_menu_items = CurrentMenuRepository.get_current_menu_items()
+            if not new_menu_items:
+                return "No items in the current menu. Please add at least one item."
+            logging.info("Finalized current menu")
+            return new_menu_items
+        except Exception as e:
+            logging.error(f"Error finalizing current menu: {e}")
+            return f"Error finalizing current menu: {e}"

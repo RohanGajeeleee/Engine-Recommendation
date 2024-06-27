@@ -15,13 +15,12 @@ class FeedbackService:
                 logging.debug(f"Feedback already given for employee_id: {employee_id}, menu_id: {menu_id}, time_of_day: {time_of_day}")
                 return "Feedback already given for this item at the specified time of day."
             
-            # Add feedback
             FeedbackRepository.add_feedback(employee_id, menu_id, comment, rating, current_date)
             
-            # Mark feedback given
+            
             FeedbackRepository.mark_feedback_given(employee_id, menu_id, time_of_day)
             
-            # Remove the item from choices
+            
             FeedbackRepository.remove_choice(employee_id, menu_id, time_of_day)
             
             logging.info(f"Feedback added for employee ID {employee_id}, menu ID {menu_id}, time of day {time_of_day}")
