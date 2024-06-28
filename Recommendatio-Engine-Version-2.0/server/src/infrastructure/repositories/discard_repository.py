@@ -42,7 +42,7 @@ class DiscardRepository:
             
             db.commit()
         except Exception as e:
-            db.rollback()  # Ensure the transaction is rolled back in case of an error
+            db.rollback() 
             raise e
         finally:
             cursor.close()
@@ -58,8 +58,8 @@ class DiscardRepository:
     @staticmethod
     def _insert_into_menu(cursor, item_id):
         query = """
-        INSERT INTO menu (name, price, availability) 
-        SELECT name, price, availability FROM discarded_items WHERE id = %s
+        INSERT INTO menu (name, price, availability, spice_level, food_category, dietary_type) 
+        SELECT name, price, availability, spice_level, food_category, dietary_type FROM discarded_items WHERE id = %s
         """
         cursor.execute(query, (item_id,))
 
@@ -129,10 +129,10 @@ class DiscardRepository:
             avg_rating = avg_rating if avg_rating is not None else 0
             sentiment = sentiment if sentiment is not None else 'Neutral'
             insert_query = """
-            INSERT INTO discarded_items (menu_id, name, price, availability, average_rating, sentiments)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO discarded_items (menu_id, name, price, availability, spice_level, food_category, dietary_type, average_rating, sentiments)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(insert_query, (item['id'], item['name'], item['price'], item['availability'], avg_rating, sentiment))
+            cursor.execute(insert_query, (item['id'], item['name'], item['price'], item['availability'], item['spice_level'], item['food_category'], item['dietary_type'], avg_rating, sentiment))
             delete_query = "DELETE FROM menu WHERE id = %s"
             cursor.execute(delete_query, (item['id'],))
             db.commit()

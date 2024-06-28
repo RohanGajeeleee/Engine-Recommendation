@@ -18,20 +18,26 @@ class MenuService:
             return f"Error listing items: {e}"
 
     @staticmethod
-    def add_item(name, price, availability):
+    def add_item(name, price, availability, spice_level, food_category, dietary_type):
         try:
-            menu_item = MenuItem(name=name, price=price, availability=availability)
+            menu_item = MenuItem(
+                name=name,
+                price=price,
+                availability=availability,
+                spice_level=spice_level,
+                food_category=food_category,
+                dietary_type=dietary_type
+            )
             MenuRepository.add(menu_item)
             logging.info(f"Added menu item: {name}")
             return "Menu item added successfully"
         except Exception as e:
             logging.error(f"Error adding item: {e}")
             return f"Error adding item: {e}"
-
     @staticmethod
-    def update_item(item_id, name=None, price=None, availability=None):
+    def update_item(item_id, name=None, price=None, availability=None, spice_level=None, food_category=None, dietary_type=None):
         try:
-            menu_item = MenuItem(item_id=item_id, name=name, price=price, availability=availability)
+            menu_item = MenuItem(item_id=item_id, name=name, price=price, availability=availability, spice_level=spice_level, food_category=food_category, dietary_type=dietary_type)
             MenuRepository.update(menu_item)
             logging.info(f"Updated menu item ID: {item_id}")
             return "Menu item updated successfully"

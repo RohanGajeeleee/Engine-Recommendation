@@ -2,8 +2,11 @@ import os
 import json
 import mysql.connector
 import sys
+import logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from src.infrastructure.db_config import get_db_connection
+
+logging.basicConfig(level=logging.DEBUG)
 
 def clear_database():
     db = get_db_connection()
@@ -28,17 +31,16 @@ def clear_database():
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         db.commit()
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        logging.error(f"Error clearing database: {err}")
     finally:
         cursor.close()
         db.close()
 
 def insert_initial_data():
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'initial_data.json')
-    print(f"Looking for initial_data.json at: {file_path}")
 
     if not os.path.isfile(file_path):
-        print(f"File not found: {file_path}")
+        logging.error(f"File not found: {file_path}")
         return
 
     with open(file_path, 'r') as file:
@@ -48,15 +50,20 @@ def insert_initial_data():
     cursor = db.cursor()
     try:
         for item in data['menu_items']:
-            cursor.execute("INSERT INTO menu (name, price, availability) VALUES (%s, %s, %s)", 
-                           (item['name'], item['price'], item['availability']))
-
+            cursor.execute(
+                "INSERT INTO menu (name, price, availability, spice_level, food_category, dietary_type) VALUES (%s, %s, %s, %s, %s, %s)",
+                (item['name'], item['price'], item['availability'], item['spice_level'], item['food_category'], item['dietary_type'])
+            )
         for item in data['current_menu_items']:
             cursor.execute("INSERT INTO current_menu (menu_id) VALUES (%s)", (item['menu_id'],))
 
         db.commit()
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        logging.error(f"Error inserting initial data: {err}")
     finally:
         cursor.close()
         db.close()
+
+if __name__ == "__main__":
+    clear_database()
+    insert_initial_data()

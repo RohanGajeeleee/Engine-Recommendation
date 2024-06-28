@@ -4,8 +4,8 @@ from src.infrastructure.repositories.utility_repository import UtilityRepository
 class MenuRepository:
     @staticmethod
     def add(menu_item):
-        query = "INSERT INTO menu (name, price, availability) VALUES (%s, %s, %s)"
-        params = (menu_item.name, menu_item.price, menu_item.availability)
+        query = "INSERT INTO menu (name, price, availability, spice_level, food_category, dietary_type) VALUES (%s, %s, %s, %s, %s, %s)"
+        params = (menu_item.name, menu_item.price, menu_item.availability, menu_item.spice_level, menu_item.food_category, menu_item.dietary_type)
         MenuRepository._execute_query(query, params)
 
     @staticmethod
@@ -103,7 +103,7 @@ class MenuRepository:
         cursor = db.cursor(dictionary=True)
         try:
             query = """
-            SELECT m.id, m.name, m.price, m.availability, f.comment, f.rating
+            SELECT m.id, m.name, m.price, m.availability, m.spice_level, m.food_category, m.dietary_type, f.comment, f.rating
             FROM menu m
             LEFT JOIN feedback f ON m.id = f.menu_id
             """

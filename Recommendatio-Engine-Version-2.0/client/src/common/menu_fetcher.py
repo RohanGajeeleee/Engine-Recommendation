@@ -1,7 +1,7 @@
 # client/src/common/menu_fetcher.py
 
 from common.network_utils import send_request
-
+import logging
 class MenuFetcher:
     @staticmethod
     def fetch_item_ids():

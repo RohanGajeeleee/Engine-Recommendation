@@ -16,13 +16,16 @@ class DiscardService:
                     'name': feedback['name'],
                     'price': feedback['price'],
                     'availability': feedback['availability'],
+                    'spice_level': feedback['spice_level'],
+                    'food_category': feedback['food_category'],
+                    'dietary_type': feedback['dietary_type'],
                     'comments': [],
                     'ratings': []
                 }
             item_feedback[item_id]['comments'].append(feedback['comment'])
             item_feedback[item_id]['ratings'].append(feedback['rating'])
 
-        # Process each item's feedback
+     
         for item_id, data in item_feedback.items():
             avg_rating = sum(data['ratings']) / len(data['ratings']) if data['ratings'] else 0
             sentiment_score = sum(SentimentAnalysisService.analyze_sentiment(comment) for comment in data['comments'] if comment is not None)
@@ -33,7 +36,10 @@ class DiscardService:
                     'id': item_id,
                     'name': data['name'],
                     'price': data['price'],
-                    'availability': data['availability']
+                    'availability': data['availability'],
+                    'spice_level': data['spice_level'],
+                    'food_category': data['food_category'],
+                    'dietary_type': data['dietary_type']
                 }, avg_rating, sentiment)
     @staticmethod
     def view_discarded_items():

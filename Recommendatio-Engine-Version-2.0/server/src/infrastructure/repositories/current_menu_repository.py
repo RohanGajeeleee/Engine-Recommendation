@@ -1,18 +1,19 @@
 # server/src/infrastructure/repositories/current_menu_repository.py
 from src.infrastructure.db_config import get_db_connection
 import mysql.connector
-
+import logging
 class CurrentMenuRepository:
     @staticmethod
     def get_current_menu_items():
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
         try:
-            query = "SELECT cm.menu_id AS id, m.name FROM current_menu cm JOIN menu m ON cm.menu_id = m.id"
+            query = "SELECT cm.menu_id AS id, m.name, m.food_category, m.spice_level, m.dietary_type FROM current_menu cm JOIN menu m ON cm.menu_id = m.id"
             cursor.execute(query)
-            return cursor.fetchall()
+            result = cursor.fetchall()
+            return result
         except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            logging.error(f"Error: {err}")
             return []
         finally:
             cursor.close()

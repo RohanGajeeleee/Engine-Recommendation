@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from common.network_utils import send_request
 from common.input_validation import InputValidator
 from common.menu_item_checker import MenuItemChecker
-
+import logging
 class EmployeeMenu:
     MENU_CHOICES = {
         'ADD_FEEDBACK': '1',
@@ -14,7 +14,8 @@ class EmployeeMenu:
         'CHOOSE_RECOMMENDED_ITEM': '3',
         'VIEW_NOTIFICATIONS': '4',
         'REPLY_FEEDBACK_REQUEST': '5',
-        'LOGOUT': '6'
+        'UPDATE_PROFILE': '6',
+        'LOGOUT': '7'
     }
 
     @staticmethod
@@ -25,7 +26,9 @@ class EmployeeMenu:
         print("3. Choose Recommended Item")
         print("4. View Notifications")
         print("5. Reply to Feedback Request")
-        print("6. Logout")
+        print("6. Update Profile")
+        print("7. Logout")
+    
 
     @staticmethod
     def handle_choice(employee_id, choice, first_day, current_date):
@@ -35,11 +38,23 @@ class EmployeeMenu:
             EmployeeMenu.MENU_CHOICES['CHOOSE_RECOMMENDED_ITEM']: lambda: RecommendationManager.choose_recommended_item(employee_id),
             EmployeeMenu.MENU_CHOICES['VIEW_NOTIFICATIONS']: lambda: NotificationManager.view_notifications(employee_id),
             EmployeeMenu.MENU_CHOICES['REPLY_FEEDBACK_REQUEST']: lambda: FeedbackRequestManager.reply_to_request(employee_id),
+            EmployeeMenu.MENU_CHOICES['UPDATE_PROFILE']: lambda: ProfileManager.update_profile(employee_id),
             EmployeeMenu.MENU_CHOICES['LOGOUT']: UserSession.logout
         }
         action = actions.get(choice, UserSession.invalid_choice)
         return action()
+class ProfileManager:
+    @staticmethod
+    def update_profile(employee_id):
+        dietary_preference = InputValidator.get_valid_dietary_type("Enter dietary preference (1 for Vegetarian, 2 for Non-Vegetarian, 3 for Eggetarian): ", allow_empty=True)
+        spice_level = InputValidator.get_valid_spice_level("Enter spice level (1 for Low, 2 for Medium, 3 for High): ", allow_empty=True)
+        cuisine_preference = InputValidator.get_valid_food_category("Enter cuisine preference (1 for North Indian, 2 for South Indian, 3 for Other): ", allow_empty=True)
+        sweet_tooth = InputValidator.get_valid_sweet_tooth("Do you have a sweet tooth? (1 for Yes, 2 for No): ", allow_empty=True)
 
+        request = f"UPDATE_PROFILE {employee_id} {dietary_preference} {spice_level} {cuisine_preference} {sweet_tooth}"
+        response = send_request(request)
+        print(response)
+        return True
 class FeedbackManager:
     @staticmethod
     def add_feedback(employee_id, current_date):
@@ -72,11 +87,14 @@ class FeedbackManager:
 class RecommendationManager:
     @staticmethod
     def choose_recommended_item(employee_id):
-        current_menu_items = MenuItemChecker.fetch_current_menu_items()
-
-        print("\nCurrent Menu Items:")
-        for item in current_menu_items:
-            print(f"ID: {item['id']}, Name: {item['name']}")
+        request = f"FETCH_SORTED_MENU {employee_id}"
+        response = send_request(request)
+        
+        if response.startswith("No preferences found") or response.startswith("Error"):
+            print(response)
+            return False
+        
+        print(response)
 
         item_id = MenuItemChecker.get_existing_current_item_id("Enter item ID to choose: ")
         time_of_day = InputValidator.get_valid_time_of_day("Enter time of day (breakfast, lunch, dinner): ")

@@ -1,7 +1,7 @@
 # client/src/common/menu_validator.py
 
 from common.input_validation import InputValidator
-
+import logging
 class MenuValidator:
     @staticmethod
     def get_existing_item_id(prompt, fetcher_method):
@@ -33,4 +33,5 @@ class MenuValidator:
             if item_id in item_ids:
                 return item_id
             else:
+                logging.warning(f"Item ID {item_id} does not exist in the current menu.")
                 print(f"Item ID {item_id} does not exist in the current menu. Please enter a valid item ID.")

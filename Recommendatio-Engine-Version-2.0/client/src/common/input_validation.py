@@ -70,3 +70,59 @@ class InputValidator:
                     print("Please enter a positive number.")
             except ValueError:
                 print("Invalid input. Please enter a valid number.")
+    @staticmethod
+    def get_valid_spice_level(prompt, allow_empty=False):
+        options = {"1": "Low", "2": "Medium", "3": "High"}
+        while True:
+            print(prompt)
+            for key, value in options.items():
+                print(f"{key}: {value}")
+            choice = input("Enter choice (or leave blank to keep current): ").strip()
+            if allow_empty and not choice:
+                return None
+            if choice in options:
+                return options[choice]
+            print("Invalid choice. Please try again.")
+
+    @staticmethod
+    def get_valid_food_category(prompt, allow_empty=False):
+        options = {"1": "North-Indian", "2": "South-Indian", "3": "Other", "4": "Dessert"}
+        while True:
+            print(prompt)
+            for key, value in options.items():
+                print(f"{key}: {value}")
+            choice = input("Enter choice (or leave blank to keep current): ").strip()
+            if allow_empty and not choice:
+                return None
+            if choice in options:
+                return options[choice]
+            print("Invalid choice. Please try again.")
+
+    @staticmethod
+    def get_valid_dietary_type(prompt, allow_empty=False):
+        options = {"1": "Vegetarian", "2": "Non-Vegetarian", "3": "Eggetarian"}
+        while True:
+            print(prompt)
+            for key, value in options.items():
+                print(f"{key}: {value}")
+            choice = input("Enter choice (or leave blank to keep current): ").strip()
+            if allow_empty and not choice:
+                return None
+            if choice in options:
+                return options[choice]
+            print("Invalid choice. Please try again.")
+    @staticmethod
+    def get_valid_sweet_tooth(prompt, allow_empty=False):
+        options = {"1": "Yes", "2": "No"}
+        while True:
+            print(prompt)
+            for key, value in options.items():
+                print(f"{key}: {value}")
+            choice = input("Enter choice (or leave blank to keep current): ").strip()
+            if allow_empty and not choice:
+                return None
+            if choice in options:
+                return options[choice]
+            print("Invalid choice. Please try again.")
+    
+                

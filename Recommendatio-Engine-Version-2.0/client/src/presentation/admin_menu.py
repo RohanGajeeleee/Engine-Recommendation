@@ -45,11 +45,14 @@ class MenuManager:
         name = InputValidator.get_valid_input("Enter item name: ")
         price = InputValidator.get_valid_price("Enter item price: ")
         availability = InputValidator.get_valid_availability("Enter availability (1 for Available, 2 for Unavailable): ")
-        request = f"ADD_ITEM {name} {price} {availability}"
+        spice_level = InputValidator.get_valid_spice_level("Enter spice level (1 for Low, 2 for Medium, 3 for High): ")
+        food_category = InputValidator.get_valid_food_category("Enter food category (1 for North Indian, 2 for South Indian, 3 for Other, 4 for Dessert): ")
+        dietary_type = InputValidator.get_valid_dietary_type("Enter dietary type (1 for Vegetarian, 2 for Non-Vegetarian, 3 for Eggetarian): ")
+        request = f"ADD_ITEM {name} {price} {availability} {spice_level} {food_category} {dietary_type}"
         response = send_request(request)
+
         print(response)
         return True
-
     @staticmethod
     def update_item():
         MenuManager.view_menu()
@@ -57,7 +60,11 @@ class MenuManager:
         name = InputValidator.get_valid_input("Enter new name (or leave blank to keep current): ", allow_empty=True)
         price = InputValidator.get_valid_price("Enter new price (or leave blank to keep current): ", allow_empty=True)
         availability = InputValidator.get_valid_availability("Enter new availability (1 for Available, 2 for Unavailable, or leave blank to keep current): ", allow_empty=True)
-        request = f"UPDATE_ITEM {item_id} {name if name else 'null'} {price if price else 'null'} {availability if availability else 'null'}"
+        spice_level = InputValidator.get_valid_spice_level("Enter new spice level (1 for Low, 2 for Medium, 3 for High, or leave blank to keep current): ", allow_empty=True)
+        food_category = InputValidator.get_valid_food_category("Enter new food category (1 for North Indian, 2 for South Indian, 3 for Other, 4 for Dessert, or leave blank to keep current): ", allow_empty=True)
+        dietary_type = InputValidator.get_valid_dietary_type("Enter new dietary type (1 for Vegetarian, 2 for Non-Vegetarian, 3 for Eggetarian, or leave blank to keep current): ", allow_empty=True)
+        
+        request = f"UPDATE_ITEM {item_id} {name if name else 'null'} {price if price else 'null'} {availability if availability else 'null'} {spice_level if spice_level else 'null'} {food_category if food_category else 'null'} {dietary_type if dietary_type else 'null'}"
         response = send_request(request)
         print(response)
         return True

@@ -10,9 +10,7 @@ class FeedbackService:
     @staticmethod
     def add_feedback(employee_id, menu_id, rating, comment, current_date, time_of_day):
         try:
-            logging.debug(f"Attempting to add feedback for employee_id: {employee_id}, menu_id: {menu_id}, time_of_day: {time_of_day}")
             if not FeedbackRepository.can_give_feedback(employee_id, menu_id, time_of_day):
-                logging.debug(f"Feedback already given for employee_id: {employee_id}, menu_id: {menu_id}, time_of_day: {time_of_day}")
                 return "Feedback already given for this item at the specified time of day."
             
             FeedbackRepository.add_feedback(employee_id, menu_id, comment, rating, current_date)

@@ -4,25 +4,55 @@ import logging
 from src.infrastructure.repositories.current_menu_repository import CurrentMenuRepository
 from src.infrastructure.repositories.Choice_Repository import ChoiceRepository
 from src.infrastructure.repositories.validation_repository import ValidationRepository
+from src.application.services.profile_service import ProfileService
 logging.basicConfig(level=logging.INFO)
 
 class CurrentMenuService:
     @staticmethod
-    def list_current_menu_items():
+    def get_current_menu():
         try:
             current_menu_items = CurrentMenuRepository.get_current_menu_items()
-            logging.info("Listed current menu items")
-            if current_menu_items:
-                response = "\nCurrent Menu Items:\n"
-                for item in current_menu_items:
-                    response += f"ID: {item['id']}, Name: {item['name']}\n"
-                return response
-            return "No current menu items available."
+            logging.info("Fetched current menu items")
+            return current_menu_items
         except Exception as e:
-            logging.error(f"Error listing current menu items: {e}")
-            return f"Error listing current menu items: {e}"
-    
+            logging.error(f"Error fetching current menu items: {e}")
+            return []
 
+    @staticmethod
+    def sort_menu_items_by_preferences(menu_items, preferences):
+        def preference_score(item):
+            score = 0
+            if item['dietary_type'] == preferences['dietary_preference']:
+                score += 5  
+            if item['spice_level'] == preferences['spice_level']:
+                score += 3  
+            if item['food_category'] == preferences['cuisine_preference']:
+                score += 2  
+            if item['food_category'] == 'Dessert' and preferences['sweet_tooth'] == 'Yes':
+                score += 1  
+            return score
+
+        sorted_items = sorted(menu_items, key=preference_score, reverse=True)
+        return sorted_items
+        
+
+    @staticmethod
+    def get_sorted_menu_items_by_preferences(employee_id):
+
+        user_preferences = ProfileService.get_user_preferences(employee_id)
+        if not user_preferences:
+            return f"No preferences found for employee ID {employee_id}"
+
+        current_menu_items = CurrentMenuService.get_current_menu()
+        if isinstance(current_menu_items, str):  
+            return current_menu_items
+
+        sorted_menu_items = CurrentMenuService.sort_menu_items_by_preferences(current_menu_items, user_preferences)
+
+        response = "\nRecommended Menu Items:\n"
+        for item in sorted_menu_items:
+            response += f"ID: {item['id']}, Name: {item['name']}\n"
+        return response 
     @staticmethod
     def choose_recommended_item(employee_id, item_id, time_of_day):
         try:
@@ -70,3 +100,4 @@ class CurrentMenuService:
         except Exception as e:
             logging.error(f"Error finalizing current menu: {e}")
             return f"Error finalizing current menu: {e}"
+  

@@ -38,7 +38,6 @@ class FeedbackRepository:
             query = "SELECT feedback_given FROM choices WHERE employee_id = %s AND menu_id = %s AND time_of_day = %s"
             cursor.execute(query, (employee_id, menu_id, time_of_day))
             result = cursor.fetchone()
-            logging.debug(f"Feedback check result: {result}")
             return result and not result[0]
         except mysql.connector.Error as err:
             print(f"Error: {err}")
