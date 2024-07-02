@@ -1,4 +1,3 @@
-# client/src/common/menu_utils.py
 
 class MenuUtils:
     @staticmethod

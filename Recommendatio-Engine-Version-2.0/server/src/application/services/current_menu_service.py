@@ -1,4 +1,3 @@
-# server/src/application/services/current_menu_service.py
 
 import logging
 from src.infrastructure.repositories.current_menu_repository import CurrentMenuRepository

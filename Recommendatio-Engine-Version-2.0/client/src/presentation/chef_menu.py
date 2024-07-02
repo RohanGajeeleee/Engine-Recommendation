@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Adjust the path to include the root directory and common directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from common.network_utils import send_request
 from common.menu_item_checker import MenuItemChecker
@@ -118,5 +117,5 @@ class RecommendationManager:
 class DiscardMenu:
     @staticmethod
     def show_discard_menu(chef_id):
-        from src.presentation.discard_menu import DiscardMenu  
+        from src.presentation.discard_menu import DiscardMenu   
         DiscardMenu.display()

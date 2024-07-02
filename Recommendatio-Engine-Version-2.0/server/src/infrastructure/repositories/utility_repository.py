@@ -30,7 +30,7 @@ class UtilityRepository:
 
     @staticmethod
     def delete_related_entries(item_id, cursor):
-        related_tables = ['choices', 'feedback', 'recommendations', 'next_day_menu', 'current_menu']
+        related_tables = ['choices', 'feedback', 'next_day_menu', 'current_menu']
         for table in related_tables:
             query = f"DELETE FROM {table} WHERE menu_id = %s"
             cursor.execute(query, (item_id,))

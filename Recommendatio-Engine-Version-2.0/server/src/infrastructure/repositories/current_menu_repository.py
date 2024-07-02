@@ -1,4 +1,3 @@
-# server/src/infrastructure/repositories/current_menu_repository.py
 from src.infrastructure.db_config import get_db_connection
 import mysql.connector
 import logging

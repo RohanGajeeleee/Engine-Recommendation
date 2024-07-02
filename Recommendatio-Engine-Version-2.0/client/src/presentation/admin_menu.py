@@ -1,9 +1,7 @@
-# client/src/presentation/admin_menu.py
-
 import sys
 import os
+import logging
 
-# Adjust the path to include the root directory and common directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from common.network_utils import send_request
 from common.input_validation import InputValidator
@@ -48,11 +46,13 @@ class MenuManager:
         spice_level = InputValidator.get_valid_spice_level("Enter spice level (1 for Low, 2 for Medium, 3 for High): ")
         food_category = InputValidator.get_valid_food_category("Enter food category (1 for North Indian, 2 for South Indian, 3 for Other, 4 for Dessert): ")
         dietary_type = InputValidator.get_valid_dietary_type("Enter dietary type (1 for Vegetarian, 2 for Non-Vegetarian, 3 for Eggetarian): ")
+        
         request = f"ADD_ITEM {name} {price} {availability} {spice_level} {food_category} {dietary_type}"
         response = send_request(request)
 
         print(response)
         return True
+
     @staticmethod
     def update_item():
         MenuManager.view_menu()

@@ -7,8 +7,12 @@ class DiscardService:
     @staticmethod
     def move_to_discard_menu():
         items_with_feedback = DiscardRepository.fetch_all_menu_items_with_feedback()
-        item_feedback = {}
+        item_feedback = DiscardService._aggregate_feedback(items_with_feedback)
+        DiscardService._evaluate_and_discard_items(item_feedback)
 
+    @staticmethod
+    def _aggregate_feedback(items_with_feedback):
+        item_feedback = {}
         for feedback in items_with_feedback:
             item_id = feedback['id']
             if item_id not in item_feedback:
@@ -24,13 +28,14 @@ class DiscardService:
                 }
             item_feedback[item_id]['comments'].append(feedback['comment'])
             item_feedback[item_id]['ratings'].append(feedback['rating'])
+        return item_feedback
 
-     
+    @staticmethod
+    def _evaluate_and_discard_items(item_feedback):
         for item_id, data in item_feedback.items():
             avg_rating = sum(data['ratings']) / len(data['ratings']) if data['ratings'] else 0
             sentiment_score = sum(SentimentAnalysisService.analyze_sentiment(comment) for comment in data['comments'] if comment is not None)
             sentiment = SentimentAnalysisService.convert_score_to_sentiment(sentiment_score)
-
             if avg_rating < 2 and sentiment == 'Negative':
                 DiscardRepository.move_item_to_discard({
                     'id': item_id,

@@ -1,4 +1,3 @@
-# server/src/application/services/user_service.py
 
 import logging
 from src.infrastructure.repositories.user_repository import UserRepository
@@ -39,3 +38,4 @@ class UserService:
         except Exception as e:
             logging.error(f"Error authenticating user: {e}")
             return None
+    

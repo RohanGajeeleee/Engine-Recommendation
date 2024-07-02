@@ -1,4 +1,3 @@
-# server/src/application/services/recommendation_display_service.py
 
 class RecommendationDisplayService:
     @staticmethod

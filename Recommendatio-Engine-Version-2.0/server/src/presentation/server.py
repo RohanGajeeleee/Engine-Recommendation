@@ -4,11 +4,9 @@ import socket
 import threading
 import logging
 
-# Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-# Adjust the path to include the root directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 def start_server():

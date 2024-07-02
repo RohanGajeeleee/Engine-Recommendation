@@ -1,4 +1,3 @@
-# client/src/common/menu_validator.py
 
 from common.input_validation import InputValidator
 import logging
