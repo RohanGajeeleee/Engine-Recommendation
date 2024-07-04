@@ -1,12 +1,12 @@
-
 from common.network_utils import send_request
 import logging
-class ChoiceFetcher:
-    REQUEST_FORMAT = "FETCH_USER_CHOICES {} {}"
 
-    @staticmethod
-    def fetch_user_choices(employee_id, time_of_day):
-        request = ChoiceFetcher.REQUEST_FORMAT.format(employee_id, time_of_day)
+class ChoiceFetcher:
+    def __init__(self):
+        self.request_format = "FETCH_USER_CHOICES {} {}"
+
+    def fetch_user_choices(self, employee_id, time_of_day):
+        request = self.request_format.format(employee_id, time_of_day)
         
         try:
             response = send_request(request)
@@ -25,4 +25,3 @@ class ChoiceFetcher:
         except Exception as e:
             logging.error(f"Error fetching user choices: {e}")
             return []
-
