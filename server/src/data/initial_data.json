@@ -1,0 +1,39 @@
+{
+  "menu_items": [
+    {"name": "Pasta", "price": 10.0, "availability": "Available", "spice_level": "Low", "food_category": "Other", "dietary_type": "Vegetarian"},
+    {"name": "Salad", "price": 8.0, "availability": "Available", "spice_level": "Low", "food_category": "Other", "dietary_type": "Vegetarian"},
+    {"name": "Burger", "price": 12.0, "availability": "Available", "spice_level": "Medium", "food_category": "Other", "dietary_type": "Non-Vegetarian"},
+    {"name": "Pizza", "price": 15.0, "availability": "Available", "spice_level": "Medium", "food_category": "Other", "dietary_type": "Vegetarian"},
+    {"name": "Ice Cream", "price": 20.0, "availability": "Available", "spice_level": "Low", "food_category": "Dessert", "dietary_type": "Vegetarian"},
+    {"name": "Butter Chicken", "price": 18.0, "availability": "Available", "spice_level": "Medium", "food_category": "North-Indian", "dietary_type": "Non-Vegetarian"},
+    {"name": "Paneer Tikka", "price": 16.0, "availability": "Available", "spice_level": "Medium", "food_category": "North-Indian", "dietary_type": "Vegetarian"},
+    {"name": "Masala Dosa", "price": 10.0, "availability": "Available", "spice_level": "Low", "food_category": "South-Indian", "dietary_type": "Vegetarian"},
+    {"name": "Chicken Biryani", "price": 14.0, "availability": "Available", "spice_level": "High", "food_category": "South-Indian", "dietary_type": "Non-Vegetarian"},
+    {"name": "Samosa", "price": 5.0, "availability": "Available", "spice_level": "Low", "food_category": "North-Indian", "dietary_type": "Vegetarian"},
+    {"name": "Fish Curry", "price": 20.0, "availability": "Available", "spice_level": "High", "food_category": "South-Indian", "dietary_type": "Non-Vegetarian"},
+    {"name": "Gulab Jamun", "price": 6.0, "availability": "Available", "spice_level": "Low", "food_category": "Dessert", "dietary_type": "Vegetarian"},
+    {"name": "Chole Bhature", "price": 12.0, "availability": "Available", "spice_level": "Medium", "food_category": "North-Indian", "dietary_type": "Vegetarian"},
+    {"name": "Egg Curry", "price": 15.0, "availability": "Available", "spice_level": "Medium", "food_category": "Other", "dietary_type": "Eggetarian"}
+  ],
+  "current_menu_items": [
+    {"menu_id": 1},
+    {"menu_id": 2},
+    {"menu_id": 3},
+    {"menu_id": 4},
+    {"menu_id": 5},
+    {"menu_id": 6},
+    {"menu_id": 7},
+    {"menu_id": 8},
+    {"menu_id": 9},
+    {"menu_id": 10},
+    {"menu_id": 11},
+    {"menu_id": 12},
+    {"menu_id": 13},
+    {"menu_id": 14}
+  ],
+  "feedback": [
+    {"employee_id": 3, "menu_id": 1, "comment": "The Pasta was amazing! Best I've had.", "rating": 5, "feedback_date": "2024-08-01"},
+    {"employee_id": 4, "menu_id": 5, "comment": "Ice Cream was just good.", "rating": 4, "feedback_date": "2024-08-01"}
+  ]
+}
+
